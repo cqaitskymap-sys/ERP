@@ -1,0 +1,18 @@
+export const PROCUREMENT_COLLECTIONS = {
+  requirements: "materialRequirements",
+  requisitions: "purchaseRequisitions",
+  requisitionItems: "purchaseRequisitionItems",
+  rfqs: "rfqs",
+  rfqItems: "rfqItems",
+  rfqVendors: "rfqVendors",
+  quotations: "vendorQuotations",
+  quotationItems: "vendorQuotationItems",
+  comparisons: "quotationComparisons",
+  selections: "vendorSelections",
+  orders: "purchaseOrders",
+  orderItems: "purchaseOrderItems",
+  amendments: "purchaseOrderAmendments",
+  documents: "purchaseDocuments",
+  approvals: "purchaseApprovals",
+  idempotency: "procurementIdempotency",
+} as const;

@@ -1,0 +1,135 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function allowedDocumentType() {
+      return request.resource.contentType.matches('application/pdf')
+        || request.resource.contentType.matches('image/jpeg')
+        || request.resource.contentType.matches('image/png')
+        || request.resource.contentType.matches('application/vnd.openxmlformats-officedocument.*')
+        || request.resource.contentType.matches('application/msword')
+        || request.resource.contentType.matches('application/vnd.ms-excel');
+    }
+
+    match /profiles/{userId}/{allPaths=**} {
+      allow read: if signedIn();
+      allow write: if signedIn()
+        && request.auth.uid == userId
+        && request.resource.size < 5 * 1024 * 1024
+        && request.resource.contentType.matches('image/.*');
+    }
+
+    match /customers/{customerId}/documents/{documentId}/{fileName} {
+      allow read: if signedIn();
+      allow write: if signedIn()
+        && request.resource.size < 10 * 1024 * 1024
+        && allowedDocumentType();
+    }
+
+    match /inventory/{batchId}/documents/{documentId}/{fileName} {
+      allow read: if signedIn();
+      allow write: if signedIn()
+        && request.resource.size < 10 * 1024 * 1024
+        && allowedDocumentType();
+    }
+
+    match /vendors/{vendorId}/documents/{documentId}/{fileName} {
+      allow read: if signedIn();
+      allow write: if signedIn()
+        && request.resource.size < 10 * 1024 * 1024
+        && allowedDocumentType();
+    }
+
+    match /procurement/{parentType}/{parentId}/documents/{documentId}/{fileName} {
+      allow read: if signedIn();
+      allow write: if signedIn()
+        && request.resource.size < 10 * 1024 * 1024
+        && allowedDocumentType();
+    }
+
+    match /supplier-quality/{kind}/{parentId}/{allPaths=**} {
+      allow read: if signedIn();
+      allow write: if signedIn()
+        && request.resource.size < 10 * 1024 * 1024
+        && allowedDocumentType();
+    }
+
+    match /warehouse-logistics/{kind}/{parentId}/{allPaths=**} {
+      allow read: if signedIn();
+      allow write: if signedIn()
+        && request.resource.size < 10 * 1024 * 1024
+        && allowedDocumentType();
+    }
+
+    match /complaints/{parentId}/{allPaths=**} {
+      allow read: if signedIn();
+      allow write: if signedIn()
+        && request.resource.size < 10 * 1024 * 1024
+        && allowedDocumentType();
+    }
+
+    match /investigations/{parentId}/{allPaths=**} {
+      allow read: if signedIn();
+      allow write: if signedIn()
+        && request.resource.size < 10 * 1024 * 1024
+        && allowedDocumentType();
+    }
+
+    match /samples/{parentId}/{allPaths=**} {
+      allow read: if signedIn();
+      allow write: if signedIn()
+        && request.resource.size < 10 * 1024 * 1024
+        && allowedDocumentType();
+    }
+
+    match /recalls/{parentId}/{allPaths=**} {
+      allow read: if signedIn();
+      allow write: if signedIn()
+        && request.resource.size < 10 * 1024 * 1024
+        && allowedDocumentType();
+    }
+
+    match /withdrawals/{parentId}/{allPaths=**} {
+      allow read: if signedIn();
+      allow write: if signedIn()
+        && request.resource.size < 10 * 1024 * 1024
+        && allowedDocumentType();
+    }
+
+    match /pharmacovigilance/{kind}/{parentId}/{allPaths=**} {
+      allow read: if signedIn();
+      allow write: if signedIn()
+        && request.resource.size < 10 * 1024 * 1024
+        && allowedDocumentType();
+    }
+
+    match /regulatory/{kind}/{parentId}/{allPaths=**} {
+      allow read: if signedIn();
+      allow write: if signedIn()
+        && request.resource.size < 10 * 1024 * 1024
+        && allowedDocumentType();
+    }
+
+    match /qa/{kind}/{parentId}/{allPaths=**} {
+      allow read: if signedIn();
+      allow write: if signedIn()
+        && request.resource.size < 10 * 1024 * 1024
+        && allowedDocumentType();
+    }
+
+    match /qc/{kind}/{parentId}/{allPaths=**} {
+      allow read: if signedIn();
+      allow write: if signedIn()
+        && request.resource.size < 10 * 1024 * 1024
+        && allowedDocumentType();
+    }
+
+    match /{allPaths=**} {
+      allow read: if signedIn();
+      allow write: if false;
+    }
+  }
+}

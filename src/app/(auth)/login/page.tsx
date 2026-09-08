@@ -1,0 +1,10 @@
+import { Suspense } from "react";
+import { LoginForm } from "@/app/(auth)/login/login-form";
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<p className="text-sm text-muted-foreground">Loading sign-in…</p>}>
+      <LoginForm />
+    </Suspense>
+  );
+}

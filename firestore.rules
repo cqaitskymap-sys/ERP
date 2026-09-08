@@ -1,0 +1,608 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function caller() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+
+    function callerExists() {
+      return signedIn() && exists(/databases/$(database)/documents/users/$(request.auth.uid));
+    }
+
+    function callerActive() {
+      return callerExists() && caller().status == 'active';
+    }
+
+    function hasRole(role) {
+      return callerActive() && role in caller().roles;
+    }
+
+    function isPrivileged() {
+      return hasRole('super_admin') || hasRole('admin') || hasRole('hr');
+    }
+
+    function isMasterAdmin() {
+      return hasRole('super_admin') || hasRole('admin');
+    }
+
+    function canReadMasters() {
+      return callerActive() && (
+        hasRole('super_admin') || hasRole('admin') || hasRole('department_head')
+        || hasRole('production') || hasRole('warehouse') || hasRole('purchase')
+        || hasRole('qa') || hasRole('qc') || hasRole('regulatory')
+        || hasRole('finance') || hasRole('management') || hasRole('sales')
+      );
+    }
+
+    function canWriteProductMasters() {
+      return hasRole('super_admin') || hasRole('admin') || hasRole('qa') || hasRole('production');
+    }
+
+    function canWriteMaterialMasters() {
+      return hasRole('super_admin') || hasRole('admin') || hasRole('qa') || hasRole('purchase');
+    }
+
+    function canWriteCustomerMasters() {
+      return hasRole('super_admin') || hasRole('admin') || hasRole('qa');
+    }
+
+    function canWriteVendorMasters() {
+      return hasRole('super_admin') || hasRole('admin') || hasRole('qa') || hasRole('purchase');
+    }
+
+    function isOwner(userId) {
+      return signedIn() && request.auth.uid == userId;
+    }
+
+    function changingPrivilegedUserFields() {
+      return request.resource.data.roles != resource.data.roles
+        || request.resource.data.role != resource.data.role
+        || request.resource.data.status != resource.data.status
+        || request.resource.data.permissions != resource.data.permissions
+        || request.resource.data.employeeId != resource.data.employeeId;
+    }
+
+    function isOrgMasterCollection(name) {
+      return name in [
+        'companies', 'plants', 'departments', 'areas', 'warehouses',
+        'storageLocations', 'uoms', 'uomConversions', 'financialYears',
+        'currencies', 'taxes', 'documentNumbering', 'approvalWorkflows'
+      ];
+    }
+
+    function isProductCollection(name) {
+      return name in [
+        'customers', 'products', 'productVersions', 'productCustomerMappings',
+        'productPackaging', 'productStorageConfigurations',
+        'productRegulatoryInformation', 'productMaterials',
+        'productFormulas', 'productFormulaLines',
+        'customerContacts', 'customerAddresses', 'customerQualifications',
+        'customerDocuments', 'customerContracts'
+      ];
+    }
+
+    function isMaterialCollection(name) {
+      return name in [
+        'suppliers', 'materials', 'materialSupplierMappings',
+        'materialSpecifications', 'materialStorageConfigurations'
+      ];
+    }
+
+    function isCustomerCollection(name) {
+      return name in [
+        'customers', 'customerContacts', 'customerAddresses',
+        'customerQualifications', 'customerDocuments', 'customerContracts'
+      ];
+    }
+
+    function isVendorCollection(name) {
+      return name in [
+        'vendors', 'vendorContacts', 'vendorAddresses',
+        'vendorQualifications', 'vendorDocuments', 'vendorContracts',
+        'vendorMaterials', 'vendorPerformance'
+      ];
+    }
+
+    function isMasterCollection(name) {
+      return isOrgMasterCollection(name) || isProductCollection(name)
+        || isMaterialCollection(name) || isVendorCollection(name);
+    }
+
+    function canReadWarehouse() {
+      return callerActive() && (
+        hasRole('super_admin') || hasRole('admin') || hasRole('warehouse')
+        || hasRole('qa') || hasRole('qc') || hasRole('purchase')
+        || hasRole('production') || hasRole('department_head') || hasRole('management')
+      );
+    }
+
+    function canWriteWarehouseOps() {
+      return hasRole('super_admin') || hasRole('admin') || hasRole('warehouse')
+        || hasRole('qa') || hasRole('production') || hasRole('department_head');
+    }
+
+    function canWriteQualityInventory() {
+      return canWriteWarehouseOps() || hasRole('qc');
+    }
+
+    function isQualityInventoryCollection(name) {
+      return name in [
+        'inventoryBalances', 'inventoryBatches', 'stockLedger',
+        'inventoryStatusHistory', 'batchTraceability', 'stockRejections'
+      ];
+    }
+
+    function isImmutableInventoryCollection(name) {
+      return name in ['stockLedger', 'inventoryStatusHistory', 'batchTraceability', 'inventoryIdempotency'];
+    }
+
+    function isInventoryCollection(name) {
+      return name in [
+        'inventoryBatches', 'inventoryBalances', 'goodsReceipts', 'goodsReceiptItems',
+        'stockTransfers', 'stockTransferItems', 'stockIssues', 'stockIssueItems',
+        'stockReturns', 'stockReturnItems', 'stockAdjustments', 'stockLedger',
+        'inventoryStatusHistory', 'batchTraceability', 'stockRejections',
+        'inventoryDocuments', 'inventoryIdempotency', 'notifications'
+      ];
+    }
+
+    function isProcurementCollection(name) {
+      return name in [
+        'materialRequirements', 'purchaseRequisitions', 'purchaseRequisitionItems',
+        'rfqs', 'rfqItems', 'rfqVendors',
+        'vendorQuotations', 'vendorQuotationItems',
+        'quotationComparisons', 'vendorSelections',
+        'purchaseOrders', 'purchaseOrderItems', 'purchaseOrderAmendments',
+        'purchaseDocuments', 'purchaseApprovals', 'procurementIdempotency',
+        'vendorProcurementEvents'
+      ];
+    }
+
+    function canReadProcurement() {
+      return callerActive() && (
+        hasRole('super_admin') || hasRole('admin') || hasRole('purchase')
+        || hasRole('finance') || hasRole('department_head') || hasRole('management')
+        || hasRole('warehouse') || hasRole('production') || hasRole('qa')
+        || hasRole('employee')
+      );
+    }
+
+    function canWriteProcurement() {
+      return hasRole('super_admin') || hasRole('admin') || hasRole('purchase')
+        || hasRole('department_head') || hasRole('finance') || hasRole('management')
+        || hasRole('production') || hasRole('employee');
+    }
+
+    function canWriteProcurementReceiptLink() {
+      return canWriteProcurement() || hasRole('warehouse');
+    }
+
+    function isImmutableProcurementCollection(name) {
+      return name in ['procurementIdempotency', 'vendorProcurementEvents'];
+    }
+
+    function isProductionCollection(name) {
+      return name in [
+        'productionPlans', 'productionPlanItems', 'productionSchedules', 'batchPlans',
+        'manufacturingOrders', 'manufacturingOrderItems',
+        'boms', 'bomItems', 'bomApprovals',
+        'dispensingRequests', 'dispensingRequestItems',
+        'workCenters', 'productionEquipment', 'productionEquipmentAssignments',
+        'productionOperatorAssignments',
+        'batchManufacturingRecords', 'bmrProcessSteps',
+        'inProcessChecks', 'yieldRecords', 'materialReconciliations', 'wastageRecords',
+        'productionDeviations', 'processTemplates', 'processTemplateSteps',
+        'productionOutputs', 'productionIdempotency', 'productionApprovals'
+      ];
+    }
+
+    function canReadProduction() {
+      return callerActive() && (
+        hasRole('super_admin') || hasRole('admin') || hasRole('production')
+        || hasRole('qa') || hasRole('qc') || hasRole('warehouse')
+        || hasRole('department_head') || hasRole('management')
+      );
+    }
+
+    function canWriteProduction() {
+      return hasRole('super_admin') || hasRole('admin') || hasRole('production')
+        || hasRole('qa') || hasRole('department_head') || hasRole('warehouse')
+        || hasRole('qc');
+    }
+
+    function isImmutableProductionCollection(name) {
+      return name in ['productionIdempotency'];
+    }
+
+    function isQcCollection(name) {
+      return name in [
+        'qcSampleRequests', 'qcSamples', 'qcTestRequests', 'qcTestAssignments',
+        'qcTests', 'qcTestResults', 'qcSpecifications', 'qcSpecificationItems',
+        'qcTestMethods', 'qcOOS', 'qcOOT', 'qcRetests', 'qcResampling',
+        'qcCOAs', 'qcDispositions', 'qcInstruments', 'qcReferenceStandards',
+        'qcStabilityStudies', 'qcStabilityTimepoints', 'qcDocuments',
+        'qcApprovals', 'qcIdempotency'
+      ];
+    }
+
+    function canReadQc() {
+      return callerActive() && (
+        hasRole('super_admin') || hasRole('admin') || hasRole('qc')
+        || hasRole('qa') || hasRole('production') || hasRole('warehouse')
+        || hasRole('department_head') || hasRole('management')
+      );
+    }
+
+    function canWriteQc() {
+      return hasRole('super_admin') || hasRole('admin') || hasRole('qc')
+        || hasRole('qa') || hasRole('warehouse');
+    }
+
+    function isImmutableQcCollection(name) {
+      return name in ['qcIdempotency'];
+    }
+
+    function isQaCollection(name) {
+      return name in [
+        'qaBatchReviews', 'qaBatchReviewItems', 'qaBatchDispositions',
+        'qaBatchHolds', 'qaBatchRejections', 'qaDeviations', 'qaDeviationActions',
+        'qaCAPA', 'qaCAPAActions', 'qaCAPAEffectiveness',
+        'qaChangeControls', 'qaChangeControlActions',
+        'qaDocumentReviews', 'qaReleaseCertificates', 'qaComplianceRecords',
+        'qaApprovals', 'qaIdempotency'
+      ];
+    }
+
+    function canReadQa() {
+      return callerActive() && (
+        hasRole('super_admin') || hasRole('admin') || hasRole('qa')
+        || hasRole('qc') || hasRole('production') || hasRole('warehouse')
+        || hasRole('department_head') || hasRole('management')
+      );
+    }
+
+    function canWriteQa() {
+      return hasRole('super_admin') || hasRole('admin') || hasRole('qa');
+    }
+
+    function isImmutableQaCollection(name) {
+      return name in ['qaIdempotency'];
+    }
+
+    function isRaCollection(name) {
+      return name in [
+        'regulatoryProfiles', 'regulatoryMarkets', 'regulatoryAuthorities',
+        'regulatoryRegistrations', 'regulatorySubmissions', 'regulatorySubmissionVersions',
+        'regulatoryDossiers', 'regulatoryDossierSections', 'regulatoryDocuments',
+        'regulatoryLicenses', 'regulatoryRenewals',
+        'regulatoryQueries', 'regulatoryQueryTasks',
+        'regulatoryCommitments', 'regulatoryCommunications',
+        'regulatoryRequirements', 'regulatoryArtworks', 'regulatoryChanges',
+        'regulatoryApprovals', 'regulatoryIdempotency'
+      ];
+    }
+
+    function canReadRa() {
+      return callerActive() && (
+        hasRole('super_admin') || hasRole('admin') || hasRole('regulatory')
+        || hasRole('qa') || hasRole('qc') || hasRole('department_head')
+        || hasRole('management')
+      );
+    }
+
+    function canWriteRa() {
+      return hasRole('super_admin') || hasRole('admin') || hasRole('regulatory');
+    }
+
+    function isImmutableRaCollection(name) {
+      return name in ['regulatoryIdempotency'];
+    }
+
+    function isPvCollection(name) {
+      return name in [
+        'pvIntakes', 'pvCases', 'pvCasePatients', 'pvCaseReporters',
+        'pvCaseProducts', 'pvCaseEvents',
+        'pvSeriousnessAssessments', 'pvExpectednessAssessments',
+        'pvCausalityAssessments', 'pvMedicalReviews',
+        'pvFollowUps', 'pvFollowUpTasks',
+        'pvRegulatoryReports', 'pvReportingRules',
+        'pvSignals', 'pvSignalAssessments',
+        'pvCommitments', 'pvRetentionPolicies', 'pvIdempotency'
+      ];
+    }
+
+    function canReadPv() {
+      return callerActive() && (
+        hasRole('super_admin') || hasRole('admin') || hasRole('regulatory')
+        || hasRole('qa') || hasRole('department_head') || hasRole('management')
+      );
+    }
+
+    function canWritePv() {
+      return hasRole('super_admin') || hasRole('admin') || hasRole('regulatory');
+    }
+
+    function isImmutablePvCollection(name) {
+      return name in ['pvIdempotency'];
+    }
+
+    function isComplaintCollection(name) {
+      return name in [
+        'complaints', 'complaintCategories', 'complaintSlaRules',
+        'complaintInvestigations', 'complaintInvestigators', 'complaintInvestigationTasks',
+        'complaintSamples', 'complaintSampleTransfers',
+        'complaintRootCauses', 'complaintRiskAssessments',
+        'complaintCommunications', 'complaintRegulatoryNotifications',
+        'complaintRecalls', 'complaintRecallBatches', 'complaintRecallCustomers',
+        'complaintRecallReturns', 'complaintWithdrawals', 'complaintTrends',
+        'complaintIdempotency'
+      ];
+    }
+
+    function canReadComplaints() {
+      return callerActive() && (
+        hasRole('super_admin') || hasRole('admin') || hasRole('qa')
+        || hasRole('regulatory') || hasRole('department_head') || hasRole('management')
+      );
+    }
+
+    function canWriteComplaints() {
+      return hasRole('super_admin') || hasRole('admin') || hasRole('qa') || hasRole('regulatory');
+    }
+
+    function isImmutableComplaintCollection(name) {
+      return name in ['complaintIdempotency'];
+    }
+
+    function isSupplierQualityCollection(name) {
+      return name in [
+        'supplierQualityProfiles', 'supplierRiskAssessments',
+        'supplierQualifications', 'supplierQualificationDocuments',
+        'supplierQuestionnaires', 'supplierQuestionnaireResponses',
+        'supplierEvaluations', 'supplierMaterialQualifications',
+        'supplierAudits', 'supplierAuditFindings',
+        'supplierCertificates', 'supplierQualityAgreements',
+        'supplierChanges', 'supplierPerformance', 'supplierScorecards',
+        'supplierSuspensions', 'supplierRequalifications',
+        'supplierCommunications', 'supplierQualityTemplates',
+        'supplierQualityIdempotency'
+      ];
+    }
+
+    function canReadSq() {
+      return callerActive() && (
+        hasRole('super_admin') || hasRole('admin') || hasRole('qa')
+        || hasRole('purchase') || hasRole('department_head')
+        || hasRole('management') || hasRole('regulatory') || hasRole('qc')
+      );
+    }
+
+    function canWriteSq() {
+      return hasRole('super_admin') || hasRole('admin') || hasRole('qa');
+    }
+
+    function isImmutableSqCollection(name) {
+      return name in ['supplierQualityIdempotency'];
+    }
+
+    function isLogisticsCollection(name) {
+      return name in [
+        'warehousePutawayTasks', 'warehouseMovements',
+        'warehousePickLists', 'warehousePickItems',
+        'warehousePackingRecords',
+        'warehouseShipments', 'warehouseShipmentItems',
+        'warehouseReturns', 'warehousePallets', 'warehousePackages',
+        'warehouseReservations', 'warehouseAllocations',
+        'warehouseCycleCounts', 'warehouseReconciliations',
+        'warehouseTemperatureDevices', 'warehouseTemperatureRecords',
+        'warehouseTemperatureExcursions',
+        'warehouseIncidents', 'warehouseComplianceChecks',
+        'warehouseLogisticsProviders', 'warehouseLogisticsIdempotency'
+      ];
+    }
+
+    function canReadLogistics() {
+      return canReadWarehouse();
+    }
+
+    function canWriteLogistics() {
+      return canWriteWarehouseOps();
+    }
+
+    function isImmutableLogisticsCollection(name) {
+      return name in ['warehouseLogisticsIdempotency', 'warehouseTemperatureRecords'];
+    }
+
+    function auditFieldsLocked() {
+      return request.resource.data.createdBy == resource.data.createdBy
+        && request.resource.data.createdAt == resource.data.createdAt
+        && request.resource.data.updatedBy == request.auth.uid;
+    }
+
+    function numberingIncrementOnly() {
+      return request.resource.data.diff(resource.data).affectedKeys()
+        .hasOnly(['currentNumber', 'updatedAt', 'updatedBy'])
+        && request.resource.data.currentNumber == resource.data.currentNumber + 1
+        && request.resource.data.updatedBy == request.auth.uid;
+    }
+
+    match /users/{userId} {
+      allow read: if isOwner(userId) || isPrivileged();
+      allow create: if isOwner(userId) || isPrivileged();
+      allow update: if isPrivileged()
+        || (isOwner(userId) && callerActive() && !changingPrivilegedUserFields());
+      allow delete: if hasRole('super_admin');
+    }
+
+    match /notifications/{notificationId} {
+      allow read: if canReadWarehouse();
+      allow create: if signedIn() && request.resource.data.createdBy == request.auth.uid;
+      allow update: if canReadWarehouse()
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['read', 'updatedAt', 'updatedBy']);
+      allow delete: if false;
+    }
+
+    match /stockLedger/{docId} {
+      allow read: if canReadWarehouse();
+      allow create: if canWriteQualityInventory();
+      allow update, delete: if false;
+    }
+
+    match /inventoryStatusHistory/{docId} {
+      allow read: if canReadWarehouse();
+      allow create: if canWriteQualityInventory();
+      allow update, delete: if false;
+    }
+
+    match /batchTraceability/{docId} {
+      allow read: if canReadWarehouse();
+      allow create: if canWriteQualityInventory();
+      allow update, delete: if false;
+    }
+
+    match /inventoryIdempotency/{docId} {
+      allow read: if canWriteWarehouseOps();
+      allow create: if canWriteWarehouseOps();
+      allow update, delete: if false;
+    }
+
+    match /audit_logs/{logId} {
+      allow read: if callerActive() && (
+        hasRole('super_admin') || hasRole('admin') || hasRole('qa')
+        || hasRole('regulatory') || hasRole('management')
+        || hasRole('production') || hasRole('warehouse') || hasRole('purchase')
+        || hasRole('qc')
+      );
+      allow create: if signedIn()
+        && request.resource.data.actorId == request.auth.uid;
+      allow update, delete: if false;
+    }
+
+    match /system/{docId} {
+      allow read: if true;
+      allow create: if docId == 'config';
+      allow update, delete: if hasRole('super_admin');
+    }
+
+    match /{collection}/{docId} {
+      allow read: if (isMasterCollection(collection) && canReadMasters())
+        || (isInventoryCollection(collection) && canReadWarehouse())
+        || (isProcurementCollection(collection) && canReadProcurement())
+        || (isProductionCollection(collection) && canReadProduction())
+        || (isQcCollection(collection) && canReadQc())
+        || (isQaCollection(collection) && canReadQa())
+        || (isRaCollection(collection) && canReadRa())
+        || (isPvCollection(collection) && canReadPv())
+        || (isComplaintCollection(collection) && canReadComplaints())
+        || (isSupplierQualityCollection(collection) && canReadSq())
+        || (isLogisticsCollection(collection) && canReadLogistics());
+      allow create: if isLogisticsCollection(collection)
+        && canWriteLogistics()
+        && request.resource.data.createdBy == request.auth.uid;
+      allow create: if isSupplierQualityCollection(collection)
+        && canWriteSq()
+        && request.resource.data.createdBy == request.auth.uid;
+      allow create: if isComplaintCollection(collection)
+        && canWriteComplaints()
+        && request.resource.data.createdBy == request.auth.uid;
+      allow create: if isPvCollection(collection)
+        && canWritePv()
+        && request.resource.data.createdBy == request.auth.uid;
+      allow create: if isRaCollection(collection)
+        && canWriteRa()
+        && request.resource.data.createdBy == request.auth.uid;
+      allow create: if isQaCollection(collection)
+        && canWriteQa()
+        && request.resource.data.createdBy == request.auth.uid;
+      allow create: if isQcCollection(collection)
+        && canWriteQc()
+        && request.resource.data.createdBy == request.auth.uid;
+      allow create: if isProductionCollection(collection)
+        && canWriteProduction()
+        && request.resource.data.createdBy == request.auth.uid;
+      allow create: if isProcurementCollection(collection)
+        && canWriteProcurementReceiptLink()
+        && request.resource.data.createdBy == request.auth.uid;
+      allow create: if isInventoryCollection(collection)
+        && (canWriteWarehouseOps() || (hasRole('qc') && isQualityInventoryCollection(collection)))
+        && request.resource.data.createdBy == request.auth.uid;
+      allow create: if isMasterCollection(collection)
+        && request.resource.data.createdBy == request.auth.uid
+        && (
+          (isOrgMasterCollection(collection) && isMasterAdmin())
+          || (isCustomerCollection(collection) && canWriteCustomerMasters())
+          || (isVendorCollection(collection) && canWriteVendorMasters())
+          || (isProductCollection(collection) && !isCustomerCollection(collection) && canWriteProductMasters())
+          || (isMaterialCollection(collection) && canWriteMaterialMasters())
+        );
+      allow update: if isLogisticsCollection(collection)
+        && canWriteLogistics()
+        && !isImmutableLogisticsCollection(collection)
+        && auditFieldsLocked();
+      allow update: if isSupplierQualityCollection(collection)
+        && canWriteSq()
+        && !isImmutableSqCollection(collection)
+        && auditFieldsLocked();
+      allow update: if isComplaintCollection(collection)
+        && canWriteComplaints()
+        && !isImmutableComplaintCollection(collection)
+        && auditFieldsLocked();
+      allow update: if isPvCollection(collection)
+        && canWritePv()
+        && !isImmutablePvCollection(collection)
+        && auditFieldsLocked();
+      allow update: if isRaCollection(collection)
+        && canWriteRa()
+        && !isImmutableRaCollection(collection)
+        && auditFieldsLocked();
+      allow update: if isQaCollection(collection)
+        && canWriteQa()
+        && !isImmutableQaCollection(collection)
+        && auditFieldsLocked();
+      allow update: if isQcCollection(collection)
+        && canWriteQc()
+        && !isImmutableQcCollection(collection)
+        && auditFieldsLocked();
+      allow update: if isProductionCollection(collection)
+        && canWriteProduction()
+        && !isImmutableProductionCollection(collection)
+        && auditFieldsLocked();
+      allow update: if isProcurementCollection(collection)
+        && canWriteProcurementReceiptLink()
+        && !isImmutableProcurementCollection(collection)
+        && auditFieldsLocked();
+      allow update: if isInventoryCollection(collection)
+        && (canWriteWarehouseOps() || (hasRole('qc') && isQualityInventoryCollection(collection)))
+        && !isImmutableInventoryCollection(collection)
+        && auditFieldsLocked();
+      allow update: if isMasterCollection(collection) && auditFieldsLocked() && (
+        (isOrgMasterCollection(collection) && isMasterAdmin())
+        || (isCustomerCollection(collection) && canWriteCustomerMasters())
+        || (isVendorCollection(collection) && canWriteVendorMasters())
+        || (isProductCollection(collection) && !isCustomerCollection(collection) && canWriteProductMasters())
+        || (isMaterialCollection(collection) && canWriteMaterialMasters())
+        || (collection == 'documentNumbering' && canReadMasters() && numberingIncrementOnly())
+      );
+      allow delete: if (isMasterCollection(collection) || isInventoryCollection(collection) || isProcurementCollection(collection) || isProductionCollection(collection) || isQcCollection(collection) || isQaCollection(collection) || isRaCollection(collection))
+        && hasRole('super_admin')
+        && !isImmutableInventoryCollection(collection)
+        && !isImmutableProcurementCollection(collection)
+        && !isImmutableProductionCollection(collection)
+        && !isImmutableQcCollection(collection)
+        && !isImmutableQaCollection(collection)
+        && !isImmutableRaCollection(collection)
+        && !isPvCollection(collection)
+        && !isComplaintCollection(collection)
+        && !isSupplierQualityCollection(collection)
+        && !isLogisticsCollection(collection);
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

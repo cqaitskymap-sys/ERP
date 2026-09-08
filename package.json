@@ -1,0 +1,52 @@
+{
+  "name": "pharma-erp",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint",
+    "test:inventory": "npx --yes tsx src/lib/inventory/self-test.ts",
+    "test:procurement": "npx --yes tsx src/lib/procurement/self-test.ts",
+    "test:production": "npx --yes tsx src/lib/production/self-test.ts",
+    "test:qc": "npx --yes tsx src/lib/qc/self-test.ts",
+    "test:qa": "npx --yes tsx src/lib/qa/self-test.ts",
+    "test:ra": "npx --yes tsx src/lib/ra/self-test.ts",
+    "test:pv": "npx --yes tsx src/lib/pv/self-test.ts",
+    "test:complaints": "npx --yes tsx src/lib/complaints/self-test.ts",
+    "test:sq": "npx --yes tsx src/lib/supplier-quality/self-test.ts",
+    "test:logistics": "npx --yes tsx src/lib/logistics/self-test.ts"
+  },
+  "dependencies": {
+    "@hookform/resolvers": "^5.9.1",
+    "class-variance-authority": "^0.7.1",
+    "cmdk": "^1.1.1",
+    "cn": "^0.2.5",
+    "date-fns": "^4.4.0",
+    "firebase": "^12.18.0",
+    "jose": "^6.2.11",
+    "lucide-react": "^1.41.0",
+    "next": "16.3.4",
+    "next-themes": "^0.4.6",
+    "radix-ui": "^1.6.7",
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
+    "react-hook-form": "^7.87.0",
+    "recharts": "^3.10.1",
+    "shadcn": "^4.21.0",
+    "sonner": "^2.0.8",
+    "tw-animate-css": "^1.4.0",
+    "zod": "^4.5.4"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.3.4",
+    "tailwindcss": "^4",
+    "typescript": "^5"
+  }
+}
