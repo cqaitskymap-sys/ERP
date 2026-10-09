@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { requireSession } from "@/lib/auth/server";
-import { hasAnyPermission } from "@/lib/permissions/permission-service";
+import { canAccessAny } from "@/lib/permissions/permission-service";
 import { masterErrorResponse, requireIdToken } from "@/lib/masters/http";
 import { isWarehouseResource, READ_ALIASES } from "@/lib/inventory/http";
 import { WAREHOUSE_RESOURCES } from "@/lib/inventory/http";
@@ -16,7 +16,7 @@ export async function GET(
     const { resource } = await context.params;
     if (!isWarehouseResource(resource)) throw createNamedError("ValidationError", "Unknown warehouse resource.");
     const session = await requireSession();
-    if (!hasAnyPermission(session.permissions, READ_ALIASES[resource])) {
+    if (!canAccessAny(session, READ_ALIASES[resource])) {
       throw createNamedError("ForbiddenError", "You do not have permission for this action.");
     }
     const idToken = requireIdToken(request);

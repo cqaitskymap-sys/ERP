@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { requireSession } from "@/lib/auth/server";
-import { hasAnyPermission } from "@/lib/permissions/permission-service";
+import { canAccessAny } from "@/lib/permissions/permission-service";
 import { masterErrorResponse, requireIdToken } from "@/lib/masters/http";
 import { createNamedError } from "@/lib/masters/errors";
 import { evaluateMaterialEligibility, evaluateVendorEligibility } from "@/lib/procurement/lookups";
@@ -8,7 +8,7 @@ import { evaluateMaterialEligibility, evaluateVendorEligibility } from "@/lib/pr
 export async function POST(request: Request) {
   try {
     const session = await requireSession();
-    if (!hasAnyPermission(session.permissions, ["rfq:create", "purchaseOrder:create", "quotation:create", "purchaseRequisition:create"])) {
+    if (!canAccessAny(session, ["rfq:create", "purchaseOrder:create", "quotation:create", "purchaseRequisition:create"])) {
       throw createNamedError("ForbiddenError", "You do not have permission for this action.");
     }
     const body = (await request.json()) as Record<string, string> & { idToken?: string };

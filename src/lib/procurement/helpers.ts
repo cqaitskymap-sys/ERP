@@ -12,7 +12,7 @@ import { writeNotification, type NotificationInput } from "@/lib/notifications/s
 import { PROCUREMENT_COLLECTIONS } from "@/lib/procurement/collections";
 import { PROCUREMENT_NUMBER_SERIES } from "@/lib/procurement/config";
 import { parseForm } from "@/lib/validation/schemas";
-import { hasAnyPermission, hasPermission, hasRole } from "@/lib/permissions/permission-service";
+import { canAccess, hasAnyPermission, hasPermission, hasRole } from "@/lib/permissions/permission-service";
 import type { SessionPayload } from "@/types/auth";
 import type { Permission } from "@/types/permissions";
 import type { z } from "zod";
@@ -30,7 +30,7 @@ export function parseOrFail<T>(schema: z.ZodType<T>, payload: unknown): T {
 }
 
 export function ensurePermission(session: SessionPayload, permission: Permission) {
-  if (!hasPermission(session.permissions, permission)) {
+  if (!canAccess(session, permission)) {
     fail("You do not have permission for this action.");
   }
 }

@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import { CustomerDetail } from "@/components/partners/customer-detail";
-import { LoadingState } from "@/components/feedback/loading-state";
+import { PageLoader } from "@/components/feedback/loading-state";
 
 export default async function CustomerDetailPage({
   params,
@@ -9,7 +9,7 @@ export default async function CustomerDetailPage({
 }) {
   const { id } = await params;
   return (
-    <Suspense fallback={<LoadingState />}>
+    <Suspense fallback={<PageLoader />}>
       <CustomerDetail id={id} />
     </Suspense>
   );

@@ -1,0 +1,16 @@
+export const COSTING_COLLECTIONS = {
+  productStandards: "costingProductStandards",
+  standardVersions: "costingStandardVersions",
+  batchRecords: "costingBatchRecords",
+  batchLines: "costingBatchLines",
+  allocations: "costingAllocations",
+  varianceAnalyses: "costingVarianceAnalyses",
+  varianceInvestigations: "costingVarianceInvestigations",
+  rateCards: "costingRateCards",
+  allocationRules: "costingAllocationRules",
+  approvals: "costingApprovalRecords",
+  reconciliations: "costingReconciliationRecords",
+  settings: "costingSettings",
+  audit: "costingAuditRecords",
+  idempotency: "costingIdempotency",
+} as const;

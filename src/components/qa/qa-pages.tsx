@@ -272,7 +272,7 @@ function DetailInner({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [resource, id]);
 
-  if (!record && !error) return <LoadingState />;
+  if (!record && !error) return <LoadingState variant="page" />;
   if (error || !record) return <EmptyState title="Record not found" description={error || ""} />;
 
   return (
@@ -336,7 +336,7 @@ function ComplianceInner() {
     return () => window.clearTimeout(timer);
   }, []);
 
-  if (!stats && !error) return <LoadingState />;
+  if (!stats && !error) return <LoadingState variant="page" />;
   if (error || !stats) return <EmptyState title="Unable to load compliance metrics" description={error || ""} />;
   const kpis = (stats.kpis || {}) as Record<string, number>;
 

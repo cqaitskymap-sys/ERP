@@ -2,7 +2,16 @@
 
 import Link from "next/link";
 import { useTheme } from "next-themes";
-import { Menu, Moon, Search, Sun, LogOut, UserRound, Shield } from "lucide-react";
+import {
+  LayoutGrid,
+  Menu,
+  Moon,
+  Search,
+  Sun,
+  LogOut,
+  UserRound,
+  Shield,
+} from "lucide-react";
 import { Breadcrumbs } from "@/components/layout/breadcrumbs";
 import { BrandMark } from "@/components/layout/brand-mark";
 import { Button } from "@/components/ui/button";
@@ -17,43 +26,70 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/hooks/use-auth";
+import { useModuleWorkspace } from "@/lib/modules/module-workspace-context";
 import { initials } from "@/lib/utils/format";
 import { getRoleLabel } from "@/lib/permissions/catalog";
 import { Can } from "@/components/auth/can";
 
 interface TopNavProps {
   onOpenSidebar: () => void;
+  picker?: boolean;
 }
 
-export function TopNav({ onOpenSidebar }: TopNavProps) {
+export function TopNav({ onOpenSidebar, picker = false }: TopNavProps) {
   const { resolvedTheme, setTheme } = useTheme();
   const { user, profile, signOut } = useAuth();
+  const { activeModule, openModulePicker } = useModuleWorkspace();
 
   return (
-    <header className="sticky top-0 z-30 flex h-16 items-center gap-3 border-b bg-background/85 px-4 backdrop-blur-md lg:px-6">
-      <Button
-        variant="ghost"
-        size="icon"
-        className="lg:hidden"
-        onClick={onOpenSidebar}
-        aria-label="Open navigation"
-      >
-        <Menu />
-      </Button>
+    <header className="z-30 flex h-16 shrink-0 items-center gap-3 border-b bg-background/85 px-4 backdrop-blur-md lg:px-6">
+      {!picker ? (
+        <Button
+          variant="ghost"
+          size="icon"
+          className="lg:hidden"
+          onClick={onOpenSidebar}
+          aria-label="Open navigation"
+        >
+          <Menu />
+        </Button>
+      ) : null}
 
-      <div className="lg:hidden">
+      <div className={picker ? "flex items-center" : "lg:hidden"}>
         <BrandMark />
       </div>
 
-      <div className="hidden min-w-0 lg:block">
-        <Breadcrumbs />
-      </div>
+      {!picker ? (
+        <div className="hidden min-w-0 lg:block">
+          <Breadcrumbs />
+        </div>
+      ) : null}
 
       <div className="ml-auto flex items-center gap-2">
-        <div className="relative hidden w-64 xl:block">
-          <Search className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
-          <Input placeholder="Search workspace" className="pl-8" />
-        </div>
+        {!picker && activeModule ? (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={openModulePicker}
+            className="hidden gap-2 sm:inline-flex"
+          >
+            <LayoutGrid className="size-3.5" />
+            All modules
+          </Button>
+        ) : null}
+
+        {!picker ? (
+          <div className="group relative hidden w-72 xl:block">
+            <Search className="pointer-events-none absolute top-1/2 left-3 size-3.5 -translate-y-1/2 text-muted-foreground transition-colors group-focus-within:text-primary" />
+            <Input
+              placeholder="Search workspace…"
+              className="h-9 rounded-full border-border/70 bg-muted/40 pr-14 pl-9 shadow-[inset_0_1px_0_0_color-mix(in_oklch,white_6%,transparent)] backdrop-blur-sm transition-[border-color,box-shadow,background-color] placeholder:text-muted-foreground/70 focus-visible:border-primary/50 focus-visible:bg-card/80 focus-visible:ring-primary/20 dark:bg-muted/25 dark:focus-visible:bg-card/60"
+            />
+            <kbd className="pointer-events-none absolute top-1/2 right-2 inline-flex h-6 -translate-y-1/2 items-center gap-0.5 rounded-full border border-border/70 bg-background/70 px-2 font-sans text-[10px] font-medium tracking-wide text-muted-foreground shadow-sm">
+              ⌘K
+            </kbd>
+          </div>
+        ) : null}
 
         <Button
           variant="ghost"
@@ -91,6 +127,12 @@ export function TopNav({ onOpenSidebar }: TopNavProps) {
                 ) : null}
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
+              {!picker ? (
+                <DropdownMenuItem onClick={openModulePicker}>
+                  <LayoutGrid />
+                  All modules
+                </DropdownMenuItem>
+              ) : null}
               <DropdownMenuItem asChild>
                 <Link href="/profile">
                   <UserRound />

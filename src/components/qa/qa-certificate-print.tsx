@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { getQa } from "@/lib/qa/client";
 import { listMasterRecords } from "@/lib/masters/client";
 import { publicMasterError } from "@/lib/masters/errors";
+import { appConfig } from "@/lib/config/app";
 
 type Row = Record<string, unknown> & { id: string };
 
@@ -57,9 +58,22 @@ function PrintInner({ id }: { id: string }) {
         <Button className="min-h-11" onClick={() => window.print()}>Print / Save PDF</Button>
       </div>
       <header className="mb-6 border-b pb-4">
-        <p className="text-xs uppercase tracking-wide text-slate-500">Batch Release Certificate</p>
-        <h1 className="text-2xl font-semibold">{String(company?.companyName || company?.legalName || "Company")}</h1>
-        <p className="text-sm text-slate-600">{String(company?.legalName || "")}</p>
+        <div className="mb-3 flex items-start gap-3">
+          <img
+            src={appConfig.logoSrc}
+            alt={`${appConfig.name} logo`}
+            width={56}
+            height={56}
+            className="h-14 w-14 rounded-lg border bg-white object-contain p-0.5"
+          />
+          <div>
+            <p className="text-xs uppercase tracking-wide text-slate-500">Batch Release Certificate</p>
+            <h1 className="text-2xl font-semibold">
+              {String(company?.companyName || company?.legalName || appConfig.companyName)}
+            </h1>
+            <p className="text-sm text-slate-600">{String(company?.legalName || "")}</p>
+          </div>
+        </div>
         <div className="mt-3 text-sm">
           <p><strong>Certificate</strong> {String(record.certificateNumber || "—")}</p>
           <p>Version {String(record.version || 1)}</p>

@@ -1,4 +1,4 @@
-import { hasAnyPermission, hasPermission } from "@/lib/permissions/permission-service";
+import { canAccess, hasAnyPermission, hasPermission } from "@/lib/permissions/permission-service";
 import { INVENTORY_COLLECTIONS } from "@/lib/inventory/collections";
 import { selectFefoBatches } from "@/lib/inventory/fefo";
 import { issueBlockReason } from "@/lib/inventory/eligibility";
@@ -55,7 +55,7 @@ import type { Permission } from "@/types/permissions";
 import type { FefoCandidate } from "@/types/inventory";
 
 function ensurePermission(session: SessionPayload, permission: Permission) {
-  if (!hasPermission(session.permissions, permission)) {
+  if (!canAccess(session, permission)) {
     fail("You do not have permission for this action.");
   }
 }

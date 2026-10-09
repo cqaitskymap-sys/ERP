@@ -1,5 +1,5 @@
 import { PageLoader } from "@/components/feedback/loading-state";
 
 export default function Loading() {
-  return <PageLoader />;
+  return <PageLoader label="Loading PATRI ERP" className="min-h-screen" />;
 }

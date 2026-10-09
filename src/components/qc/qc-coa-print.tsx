@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { getQc } from "@/lib/qc/client";
 import { listMasterRecords } from "@/lib/masters/client";
 import { publicMasterError } from "@/lib/masters/errors";
+import { appConfig } from "@/lib/config/app";
 
 type Row = Record<string, unknown> & { id: string };
 
@@ -60,10 +61,21 @@ function PrintInner({ id }: { id: string }) {
       </div>
       <header className="mb-6 border-b pb-4">
         <div className="flex items-start justify-between gap-4">
-          <div>
-            <p className="text-xs uppercase tracking-wide text-slate-500">Certificate of Analysis</p>
-            <h1 className="text-2xl font-semibold">{String(company?.companyName || company?.legalName || "Company")}</h1>
-            <p className="text-sm text-slate-600">{String(company?.legalName || "")}</p>
+          <div className="flex items-start gap-3">
+            <img
+              src={appConfig.logoSrc}
+              alt={`${appConfig.name} logo`}
+              width={56}
+              height={56}
+              className="h-14 w-14 rounded-lg border bg-white object-contain p-0.5"
+            />
+            <div>
+              <p className="text-xs uppercase tracking-wide text-slate-500">Certificate of Analysis</p>
+              <h1 className="text-2xl font-semibold">
+                {String(company?.companyName || company?.legalName || appConfig.companyName)}
+              </h1>
+              <p className="text-sm text-slate-600">{String(company?.legalName || "")}</p>
+            </div>
           </div>
           <div className="text-right text-sm">
             <p><strong>COA</strong> {String(record.coaNumber || "—")}</p>

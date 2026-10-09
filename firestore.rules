@@ -18,7 +18,18 @@ service cloud.firestore {
     }
 
     function hasRole(role) {
-      return callerActive() && role in caller().roles;
+      return callerActive() && (
+        (caller().keys().hasAny(['roles']) && role in caller().roles)
+        || (caller().keys().hasAny(['role']) && caller().role == role)
+      );
+    }
+
+    function canReadAnyBusinessData() {
+      return hasRole('super_admin') || hasRole('admin');
+    }
+
+    function canWriteAnyBusinessData() {
+      return hasRole('super_admin') || hasRole('admin');
     }
 
     function isPrivileged() {
@@ -35,6 +46,7 @@ service cloud.firestore {
         || hasRole('production') || hasRole('warehouse') || hasRole('purchase')
         || hasRole('qa') || hasRole('qc') || hasRole('regulatory')
         || hasRole('finance') || hasRole('management') || hasRole('sales')
+        || hasRole('maintenance')
       );
     }
 
@@ -47,7 +59,7 @@ service cloud.firestore {
     }
 
     function canWriteCustomerMasters() {
-      return hasRole('super_admin') || hasRole('admin') || hasRole('qa');
+      return hasRole('super_admin') || hasRole('admin') || hasRole('qa') || hasRole('sales');
     }
 
     function canWriteVendorMasters() {
@@ -183,6 +195,176 @@ service cloud.firestore {
 
     function isImmutableProcurementCollection(name) {
       return name in ['procurementIdempotency', 'vendorProcurementEvents'];
+    }
+
+    function isSalesCollection(name) {
+      return name in [
+        'salesPriceLists', 'salesPriceRules',
+        'salesQuotations', 'salesQuotationItems', 'salesQuotationVersions',
+        'salesOrders', 'salesOrderLines', 'salesOrderApprovals',
+        'salesOrderStatusHistory', 'salesOrderChanges', 'salesOrderAllocations',
+        'contractManufacturingOrders', 'salesReturns',
+        'salesCustomerRequirements', 'salesCommunications',
+        'salesCreditReviews', 'salesDocuments', 'salesReceivableSnapshots',
+        'salesSettings', 'salesIdempotency'
+      ];
+    }
+
+    function canReadSales() {
+      return callerActive() && (
+        hasRole('super_admin') || hasRole('admin') || hasRole('sales')
+        || hasRole('finance') || hasRole('management') || hasRole('warehouse')
+        || hasRole('production') || hasRole('qa') || hasRole('regulatory')
+        || hasRole('employee')
+      );
+    }
+
+    function canWriteSales() {
+      return hasRole('super_admin') || hasRole('admin') || hasRole('sales')
+        || hasRole('finance') || hasRole('management');
+    }
+
+    function isImmutableSalesCollection(name) {
+      return name in ['salesIdempotency', 'salesOrderStatusHistory'];
+    }
+
+    function isFinanceCollection(name) {
+      return name in [
+        'financeChartOfAccounts', 'financeJournalEntries', 'financeJournalLines',
+        'financePostingRecords', 'financeSupplierInvoices', 'financeSupplierInvoiceLines',
+        'financePaymentProposals', 'financePayments', 'financePaymentAllocations',
+        'financeCustomerInvoices', 'financeCustomerInvoiceLines', 'financeCustomerReceipts',
+        'financeCreditNotes', 'financeDebitNotes',
+        'financeBankAccounts', 'financeBankStatements', 'financeBankTransactions',
+        'financeBankReconciliations', 'financeTaxCodes', 'financeCostCenters',
+        'financeBudgets', 'financeBudgetRevisions', 'financeFixedAssets',
+        'financeDepreciationRecords', 'financeExpenseClaims', 'financePeriods',
+        'financePeriodClosures', 'financeSettings', 'financeAuditRecords',
+        'financeIdempotency', 'financeApprovals'
+      ];
+    }
+
+    function canReadFinance() {
+      return callerActive() && (
+        hasRole('super_admin') || hasRole('admin') || hasRole('finance')
+        || hasRole('management') || hasRole('purchase') || hasRole('sales')
+      );
+    }
+
+    function canWriteFinance() {
+      return hasRole('super_admin') || hasRole('admin') || hasRole('finance')
+        || hasRole('management');
+    }
+
+    function isImmutableFinanceCollection(name) {
+      return name in ['financeIdempotency', 'financeAuditRecords', 'financePostingRecords'];
+    }
+
+    function isCostingCollection(name) {
+      return name in [
+        'costingProductStandards', 'costingStandardVersions', 'costingBatchRecords',
+        'costingBatchLines', 'costingAllocations', 'costingVarianceAnalyses',
+        'costingVarianceInvestigations', 'costingRateCards', 'costingAllocationRules',
+        'costingApprovalRecords', 'costingReconciliationRecords', 'costingSettings',
+        'costingAuditRecords', 'costingIdempotency'
+      ];
+    }
+
+    function canReadCosting() {
+      return callerActive() && (
+        hasRole('super_admin') || hasRole('admin') || hasRole('finance')
+        || hasRole('management') || hasRole('production')
+      );
+    }
+
+    function canWriteCosting() {
+      return hasRole('super_admin') || hasRole('admin') || hasRole('finance')
+        || hasRole('management') || hasRole('production');
+    }
+
+    function isImmutableCostingCollection(name) {
+      return name in ['costingIdempotency', 'costingAuditRecords'];
+    }
+
+    function isEngineeringCollection(name) {
+      return name in [
+        'engineeringEquipment', 'engineeringEquipmentRiskAssessments',
+        'engineeringEquipmentCategories', 'engineeringMaintenancePlans',
+        'engineeringMaintenanceTasks', 'engineeringWorkOrders',
+        'engineeringWorkOrderLines', 'engineeringBreakdowns',
+        'engineeringInstruments', 'engineeringCalibrationPlans',
+        'engineeringCalibrationRecords', 'engineeringCalibrationResults',
+        'engineeringQualificationRecords', 'engineeringMaintenanceChecklists',
+        'engineeringChecklistExecutions', 'engineeringUtilitySystems',
+        'engineeringMonitoringRecords', 'engineeringUtilityAlerts',
+        'engineeringMaintenanceCosts', 'engineeringComplianceEvents',
+        'engineeringSpareLinks', 'engineeringDocuments', 'engineeringApprovals',
+        'engineeringSettings', 'engineeringAuditRecords', 'engineeringIdempotency'
+      ];
+    }
+
+    function canReadEngineering() {
+      return callerActive() && (
+        hasRole('super_admin') || hasRole('admin') || hasRole('maintenance')
+        || hasRole('management') || hasRole('finance') || hasRole('qa')
+        || hasRole('production')
+      );
+    }
+
+    function canWriteEngineering() {
+      return hasRole('super_admin') || hasRole('admin') || hasRole('maintenance')
+        || hasRole('management');
+    }
+
+    function isImmutableEngineeringCollection(name) {
+      return name in ['engineeringIdempotency', 'engineeringAuditRecords'];
+    }
+
+    function isHrCollection(name) {
+      return name in [
+        'hrEmployeeProfiles', 'hrDesignations', 'hrJobRoles',
+        'hrJobRequisitions', 'hrCandidates', 'hrOnboardingTasks',
+        'hrEmployeeDocuments', 'hrAttendanceRecords', 'hrAttendanceCorrections',
+        'hrShiftDefinitions', 'hrShiftAssignments', 'hrRosters',
+        'hrLeavePolicies', 'hrLeaveApplications', 'hrLeaveLedger',
+        'hrOvertimeRequests', 'hrTimesheets', 'hrCompensationRecords',
+        'hrPayrollRuns', 'hrPayrollEntries', 'hrPayrollAdjustments',
+        'hrPayrollApprovals', 'hrPayslipReferences', 'hrEmployeeRequests',
+        'hrSeparationRecords', 'hrClearanceTasks', 'hrStatutoryRuleVersions',
+        'hrDisciplinaryRecords', 'hrPerformanceRecords',
+        'trainingCourses', 'trainingAssignments', 'trainingCompletions',
+        'hrHolidayCalendars', 'hrApprovals', 'hrSettings',
+        'hrAuditRecords', 'hrIdempotency'
+      ];
+    }
+
+    function canReadHr() {
+      return callerActive() && (
+        hasRole('super_admin') || hasRole('admin') || hasRole('hr')
+        || hasRole('management') || hasRole('department_head')
+        || hasRole('finance') || hasRole('trainer') || hasRole('employee')
+      );
+    }
+
+    function canWriteHr() {
+      return hasRole('super_admin') || hasRole('admin') || hasRole('hr');
+    }
+
+    function isImmutableHrCollection(name) {
+      return name in ['hrIdempotency', 'hrAuditRecords'];
+    }
+
+    function isSensitiveHrCollection(name) {
+      return name in [
+        'hrCompensationRecords', 'hrPayrollRuns', 'hrPayrollEntries',
+        'hrPayrollAdjustments', 'hrPayslipReferences', 'hrDisciplinaryRecords',
+        'hrStatutoryRuleVersions'
+      ];
+    }
+
+    function canReadSensitiveHr() {
+      return hasRole('super_admin') || hasRole('admin') || hasRole('hr')
+        || hasRole('management') || hasRole('finance');
     }
 
     function isProductionCollection(name) {
@@ -489,7 +671,8 @@ service cloud.firestore {
     }
 
     match /{collection}/{docId} {
-      allow read: if (isMasterCollection(collection) && canReadMasters())
+      allow read: if canReadAnyBusinessData()
+        || (isMasterCollection(collection) && canReadMasters())
         || (isInventoryCollection(collection) && canReadWarehouse())
         || (isProcurementCollection(collection) && canReadProcurement())
         || (isProductionCollection(collection) && canReadProduction())
@@ -499,7 +682,30 @@ service cloud.firestore {
         || (isPvCollection(collection) && canReadPv())
         || (isComplaintCollection(collection) && canReadComplaints())
         || (isSupplierQualityCollection(collection) && canReadSq())
-        || (isLogisticsCollection(collection) && canReadLogistics());
+        || (isLogisticsCollection(collection) && canReadLogistics())
+        || (isSalesCollection(collection) && canReadSales())
+        || (isFinanceCollection(collection) && canReadFinance())
+        || (isCostingCollection(collection) && canReadCosting())
+        || (isEngineeringCollection(collection) && canReadEngineering())
+        || (isHrCollection(collection) && canReadHr()
+            && (!isSensitiveHrCollection(collection) || canReadSensitiveHr()));
+      allow create: if canWriteAnyBusinessData()
+        && request.resource.data.createdBy == request.auth.uid;
+      allow create: if isHrCollection(collection)
+        && canWriteHr()
+        && request.resource.data.createdBy == request.auth.uid;
+      allow create: if isEngineeringCollection(collection)
+        && canWriteEngineering()
+        && request.resource.data.createdBy == request.auth.uid;
+      allow create: if isCostingCollection(collection)
+        && canWriteCosting()
+        && request.resource.data.createdBy == request.auth.uid;
+      allow create: if isFinanceCollection(collection)
+        && canWriteFinance()
+        && request.resource.data.createdBy == request.auth.uid;
+      allow create: if isSalesCollection(collection)
+        && canWriteSales()
+        && request.resource.data.createdBy == request.auth.uid;
       allow create: if isLogisticsCollection(collection)
         && canWriteLogistics()
         && request.resource.data.createdBy == request.auth.uid;
@@ -539,6 +745,30 @@ service cloud.firestore {
           || (isProductCollection(collection) && !isCustomerCollection(collection) && canWriteProductMasters())
           || (isMaterialCollection(collection) && canWriteMaterialMasters())
         );
+      allow update: if canWriteAnyBusinessData()
+        && request.resource.data.createdBy == resource.data.createdBy
+        && request.resource.data.createdAt == resource.data.createdAt
+        && request.resource.data.updatedBy == request.auth.uid;
+      allow update: if isHrCollection(collection)
+        && canWriteHr()
+        && !isImmutableHrCollection(collection)
+        && auditFieldsLocked();
+      allow update: if isEngineeringCollection(collection)
+        && canWriteEngineering()
+        && !isImmutableEngineeringCollection(collection)
+        && auditFieldsLocked();
+      allow update: if isCostingCollection(collection)
+        && canWriteCosting()
+        && !isImmutableCostingCollection(collection)
+        && auditFieldsLocked();
+      allow update: if isFinanceCollection(collection)
+        && canWriteFinance()
+        && !isImmutableFinanceCollection(collection)
+        && auditFieldsLocked();
+      allow update: if isSalesCollection(collection)
+        && canWriteSales()
+        && !isImmutableSalesCollection(collection)
+        && auditFieldsLocked();
       allow update: if isLogisticsCollection(collection)
         && canWriteLogistics()
         && !isImmutableLogisticsCollection(collection)
@@ -598,7 +828,12 @@ service cloud.firestore {
         && !isPvCollection(collection)
         && !isComplaintCollection(collection)
         && !isSupplierQualityCollection(collection)
-        && !isLogisticsCollection(collection);
+        && !isLogisticsCollection(collection)
+        && !isSalesCollection(collection)
+        && !isFinanceCollection(collection)
+        && !isCostingCollection(collection)
+        && !isEngineeringCollection(collection)
+        && !isHrCollection(collection);
     }
 
     match /{document=**} {

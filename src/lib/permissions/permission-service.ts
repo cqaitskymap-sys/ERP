@@ -47,13 +47,29 @@ export function isAccountActive(status?: AccountStatus) {
   return status === "active";
 }
 
+function subjectRoles(subject: UserProfile | SessionPayload) {
+  return subject.roles?.length ? subject.roles : [subject.role];
+}
+
 export function canAccess(
   subject: UserProfile | SessionPayload | null | undefined,
   required?: Permission | Permission[]
 ) {
   if (!subject) return false;
   if (!isAccountActive(subject.status)) return false;
+  if (hasRole(subjectRoles(subject), "super_admin")) return true;
   return hasPermission(subject.permissions, required);
+}
+
+/** OR-check for alias permission lists used by module resource APIs. */
+export function canAccessAny(
+  subject: UserProfile | SessionPayload | null | undefined,
+  required: Permission[]
+) {
+  if (!subject) return false;
+  if (!isAccountActive(subject.status)) return false;
+  if (hasRole(subjectRoles(subject), "super_admin")) return true;
+  return hasAnyPermission(subject.permissions, required);
 }
 
 export function assertPermission(
@@ -71,6 +87,8 @@ export function assertPermission(
     error.name = "ForbiddenError";
     throw error;
   }
+
+  if (hasRole(subjectRoles(subject), "super_admin")) return;
 
   if (!hasPermission(subject.permissions, required)) {
     const error = new Error("You do not have permission for this action.");

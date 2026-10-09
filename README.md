@@ -1,4 +1,4 @@
-# Aetheris — Pharmaceutical Manufacturing ERP
+# PATRI — Pharmaceutical Manufacturing ERP
 
 Production-grade ERP foundation for a third-party pharmaceutical manufacturing company.
 

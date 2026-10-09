@@ -9,7 +9,7 @@ import {
 import { ensureDocumentNumberSeries, nextDocumentNumber } from "@/lib/masters/numbering";
 import { writeNotification, type NotificationInput } from "@/lib/notifications/service";
 import { parseForm } from "@/lib/validation/schemas";
-import { hasPermission } from "@/lib/permissions/permission-service";
+import { canAccess, canAccessAny } from "@/lib/permissions/permission-service";
 import { LOGISTICS_COLLECTIONS } from "@/lib/logistics/collections";
 import { LOGISTICS_NUMBER_SERIES } from "@/lib/logistics/config";
 import type { SessionPayload } from "@/types/auth";
@@ -28,7 +28,7 @@ export function parseOrFail<T>(schema: z.ZodType<T>, payload: unknown): T {
 }
 
 export function ensurePermission(session: SessionPayload, permission: Permission) {
-  if (!hasPermission(session.permissions, permission)) fail("You do not have permission for this action.");
+  if (!canAccess(session, permission)) fail("You do not have permission for this action.");
 }
 
 export function text(value: unknown) {

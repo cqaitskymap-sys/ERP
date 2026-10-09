@@ -11,7 +11,7 @@ import { writeNotification, type NotificationInput } from "@/lib/notifications/s
 import { QA_COLLECTIONS } from "@/lib/qa/collections";
 import { QA_NUMBER_SERIES } from "@/lib/qa/config";
 import { parseForm } from "@/lib/validation/schemas";
-import { hasPermission } from "@/lib/permissions/permission-service";
+import { canAccess, canAccessAny } from "@/lib/permissions/permission-service";
 import type { SessionPayload } from "@/types/auth";
 import type { Permission } from "@/types/permissions";
 import type { QaSignature } from "@/types/qa";
@@ -28,7 +28,7 @@ export function parseOrFail<T>(schema: z.ZodType<T>, payload: unknown): T {
 }
 
 export function ensurePermission(session: SessionPayload, permission: Permission) {
-  if (!hasPermission(session.permissions, permission)) fail("You do not have permission for this action.");
+  if (!canAccess(session, permission)) fail("You do not have permission for this action.");
 }
 
 export function workflowFail(current: string, action: string): never {

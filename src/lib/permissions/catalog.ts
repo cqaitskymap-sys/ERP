@@ -105,6 +105,119 @@ const logisticsQa: Permission[] = [
   ...actions("warehouseReconciliation", ["approve"]),
 ];
 
+const salesModules = [
+  "sales",
+  "salesQuotation",
+  "salesOrder",
+  "salesPricing",
+  "salesReturn",
+  "contractManufacturing",
+  "salesRequirement",
+  "salesReports",
+  "salesCredit",
+] as const;
+
+const salesAll: Permission[] = salesModules.flatMap((module) => allActions(module));
+
+const salesRead: Permission[] = salesModules.flatMap((module) => read(module));
+
+const financeModules = [
+  "finance",
+  "financeAccounts",
+  "financeJournal",
+  "financeAp",
+  "financePayment",
+  "financeAr",
+  "financeBank",
+  "financeTax",
+  "financeBudget",
+  "financePeriod",
+  "financeReports",
+  "financeAudit",
+] as const;
+
+const financeAll: Permission[] = [
+  ...financeModules.flatMap((module) => allActions(module)),
+  ...actions("financeJournal", ["submit", "approve", "reject", "post"]),
+  ...actions("financeAp", ["submit", "approve", "reject"]),
+  ...actions("financePayment", ["approve", "reject", "execute", "confirm"]),
+  ...actions("financeAr", ["submit", "approve", "reject"]),
+  ...actions("financeBank", ["reconcile", "confirm"]),
+  ...actions("financePeriod", ["close", "reopen", "approve"]),
+  ...actions("financeBudget", ["approve", "reject"]),
+  ...actions("financeReports", ["export", "print"]),
+];
+
+const financeRead: Permission[] = financeModules.flatMap((module) => read(module));
+
+const costingModules = [
+  "costing",
+  "costingStandard",
+  "costingBatch",
+  "costingVariance",
+  "costingReports",
+  "costingAudit",
+] as const;
+
+const costingAll: Permission[] = [
+  ...costingModules.flatMap((module) => allActions(module)),
+  ...actions("costing", ["approve", "reject", "complete", "reopen", "reconcile", "export"]),
+  ...actions("costingStandard", ["create", "approve", "reject"]),
+  ...actions("costingBatch", ["create", "execute", "approve"]),
+  ...actions("costingVariance", ["review"]),
+  ...actions("costingReports", ["export", "print"]),
+];
+
+const costingRead: Permission[] = costingModules.flatMap((module) => read(module));
+
+const engineeringModules = [
+  "engineering",
+  "engineeringEquipment",
+  "engineeringMaintenance",
+  "engineeringWorkOrder",
+  "engineeringCalibration",
+  "engineeringQualification",
+  "engineeringUtilities",
+  "engineeringMonitoring",
+  "engineeringReports",
+  "engineeringAudit",
+  "maintenance",
+] as const;
+
+const engineeringAll: Permission[] = [
+  ...engineeringModules.flatMap((module) => allActions(module)),
+  ...actions("engineeringWorkOrder", ["create", "approve", "close", "update"]),
+  ...actions("engineeringCalibration", ["create", "approve", "update"]),
+  ...actions("engineeringQualification", ["create", "approve"]),
+  ...actions("engineeringReports", ["export", "print"]),
+];
+
+const engineeringRead: Permission[] = engineeringModules.flatMap((module) => read(module));
+
+const hrModules = [
+  "hr",
+  "hrEmployee",
+  "hrRecruitment",
+  "hrAttendance",
+  "hrLeave",
+  "hrPayroll",
+  "hrSeparation",
+  "hrReports",
+  "hrAudit",
+  "training",
+] as const;
+
+const hrAll: Permission[] = [
+  ...hrModules.flatMap((module) => allActions(module)),
+  ...actions("hrAttendance", ["approve"]),
+  ...actions("hrLeave", ["approve"]),
+  ...actions("hrPayroll", ["approve", "close", "export"]),
+  ...actions("hrReports", ["export", "print"]),
+  ...actions("training", ["approve"]),
+];
+
+const hrRead: Permission[] = hrModules.flatMap((module) => read(module));
+
 export const roleCatalog: RoleDefinition[] = [
   {
     id: "super_admin",
@@ -141,6 +254,7 @@ export const roleCatalog: RoleDefinition[] = [
       ...allActions("purchaseOrder"),
       ...allActions("purchaseOrderAmendment"),
       ...allActions("purchaseTracking"),
+      ...salesAll,
       ...allActions("production"),
       ...allActions("productionPlan"),
       ...allActions("productionSchedule"),
@@ -216,8 +330,11 @@ export const roleCatalog: RoleDefinition[] = [
       ...allActions("complaintReports"),
       ...supplierQualityAll,
       ...logisticsAll,
-      ...read("hr"),
-      ...actions("hr", ["create", "update"]),
+      ...financeAll,
+      ...costingAll,
+      ...engineeringAll,
+      ...hrAll,
+      ...allActions("users"),
       ...read("audit"),
       ...actions("audit", ["export", "print"]),
     ],
@@ -225,14 +342,16 @@ export const roleCatalog: RoleDefinition[] = [
   {
     id: "hr",
     label: "HR",
-    description: "People records, onboarding, activation, and training assignments.",
+    description: "People records, onboarding, activation, payroll, and training assignments.",
     permissions: [
       ...read("dashboard"),
-      ...allActions("hr"),
+      ...hrAll,
       ...allActions("users"),
-      ...read("training"),
-      ...actions("training", ["create", "update", "approve"]),
+      ...read("masters"),
+      ...read("finance"),
+      ...read("financeBudget"),
       ...read("audit"),
+      ...actions("audit", ["export", "print"]),
     ],
   },
   {
@@ -252,7 +371,9 @@ export const roleCatalog: RoleDefinition[] = [
       ...actions("stockAdjustment", ["read", "approve"]),
       ...read("batchTraceability"),
       ...read("finance"),
-      ...read("hr"),
+      ...hrRead,
+      ...actions("hrLeave", ["approve"]),
+      ...actions("hrAttendance", ["approve"]),
       ...read("audit"),
       ...read("masters"),
       ...read("products"),
@@ -313,6 +434,8 @@ export const roleCatalog: RoleDefinition[] = [
       ...allActions("yield"),
       ...allActions("reconciliation"),
       ...allActions("productionDeviation"),
+      ...costingRead,
+      ...actions("costingBatch", ["create", "execute"]),
       ...read("quality"),
       ...read("inventory"),
       ...read("warehouse"),
@@ -494,6 +617,10 @@ export const roleCatalog: RoleDefinition[] = [
       ...allActions("complaintReports"),
       ...supplierQualityAll,
       ...logisticsQa,
+      ...engineeringRead,
+      ...actions("engineeringCalibration", ["approve", "review"]),
+      ...actions("engineeringQualification", ["approve"]),
+      ...actions("engineeringWorkOrder", ["approve"]),
     ],
   },
   {
@@ -611,9 +738,48 @@ export const roleCatalog: RoleDefinition[] = [
     description: "Equipment, calibration, and facility work orders.",
     permissions: [
       ...read("dashboard"),
-      ...allActions("maintenance"),
+      ...engineeringAll,
       ...read("production"),
+      ...read("bom"),
+      ...read("manufacturingOrder"),
       ...read("warehouse"),
+      ...read("inventory"),
+      ...actions("stockIssue", ["create", "read", "approve", "complete"]),
+      ...read("materials"),
+      ...read("vendors"),
+      ...read("qa"),
+      ...read("qaDeviation"),
+      ...read("qaCapa"),
+      ...read("qaChangeControl"),
+      ...read("qcInstrument"),
+      ...read("finance"),
+      ...read("masters"),
+    ],
+  },
+  {
+    id: "sales",
+    label: "Sales",
+    description: "Customer orders, quotations, pricing, and commercial fulfilment.",
+    permissions: [
+      ...read("dashboard"),
+      ...salesAll,
+      ...allActions("customers"),
+      ...read("products"),
+      ...read("materials"),
+      ...read("masters"),
+      ...read("inventory"),
+      ...read("warehouse"),
+      ...actions("warehousePicking", ["create", "read"]),
+      ...read("warehouseShipment"),
+      ...read("warehouseCustomerReturn"),
+      ...read("complaints"),
+      ...read("complaintCase"),
+      ...read("finance"),
+      ...read("production"),
+      ...read("bom"),
+      ...read("qa"),
+      ...read("qaBatchRelease"),
+      ...read("qcCoa"),
     ],
   },
   {
@@ -622,14 +788,32 @@ export const roleCatalog: RoleDefinition[] = [
     description: "Costing, invoicing, and plant financial controls.",
     permissions: [
       ...read("dashboard"),
-      ...allActions("finance"),
+      ...financeAll,
+      ...costingAll,
+      ...engineeringRead,
+      ...actions("engineering", ["approve", "export"]),
+      ...actions("engineeringWorkOrder", ["approve", "close"]),
+      ...actions("engineeringCalibration", ["approve"]),
+      ...read("hr"),
+      ...read("hrPayroll"),
+      ...actions("hrPayroll", ["approve", "export"]),
+      ...read("hrReports"),
       ...read("procurement"),
-      ...read("sales"),
+      ...read("goodsReceipt"),
+      ...read("production"),
+      ...read("bom"),
+      ...read("manufacturingOrder"),
+      ...read("bmr"),
+      ...read("yield"),
+      ...read("reconciliation"),
+      ...salesRead,
+      ...actions("salesOrder", ["read", "approve", "reject", "export"]),
+      ...actions("salesCredit", ["read", "create", "approve", "reject", "export"]),
+      ...actions("salesPricing", ["read", "approve"]),
       ...actions("purchaseOrder", ["read", "approve", "reject", "export"]),
       ...actions("purchaseOrderAmendment", ["read", "approve", "reject"]),
       ...actions("quotation", ["read"]),
       ...read("purchaseTracking"),
-      ...actions("finance", ["approve", "reject", "sign", "export"]),
       ...read("masters"),
       ...read("products"),
       ...read("materials"),
@@ -643,13 +827,32 @@ export const roleCatalog: RoleDefinition[] = [
     description: "Executive read access with selected approval rights.",
     permissions: [
       ...operationalRead,
-      ...read("finance"),
-      ...read("hr"),
-      ...read("sales"),
+      ...financeRead,
+      ...actions("finance", ["approve", "export"]),
+      ...actions("financeJournal", ["approve", "reject"]),
+      ...actions("financeAp", ["approve", "reject"]),
+      ...actions("financePayment", ["approve", "reject"]),
+      ...actions("financePeriod", ["close", "reopen", "approve"]),
+      ...actions("financeReports", ["export", "print"]),
+      ...costingRead,
+      ...actions("costing", ["approve", "export"]),
+      ...actions("costingStandard", ["approve", "reject"]),
+      ...actions("costingReports", ["export", "print"]),
+      ...engineeringRead,
+      ...actions("engineering", ["approve", "export"]),
+      ...actions("engineeringWorkOrder", ["approve"]),
+      ...actions("engineeringReports", ["export", "print"]),
+      ...hrRead,
+      ...actions("hrLeave", ["approve"]),
+      ...actions("hrPayroll", ["approve", "export"]),
+      ...actions("hrReports", ["export", "print"]),
+      ...salesRead,
+      ...actions("salesOrder", ["read", "approve", "reject", "export"]),
+      ...actions("salesQuotation", ["read", "approve", "reject"]),
+      ...actions("salesCredit", ["read", "approve", "reject"]),
       ...read("regulatory"),
       ...read("audit"),
       ...actions("dashboard", ["export", "print"]),
-      ...actions("finance", ["approve", "export"]),
       ...actions("hr", ["approve"]),
       ...read("masters"),
       ...read("products"),

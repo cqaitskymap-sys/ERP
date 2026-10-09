@@ -24,6 +24,8 @@ export default async function ModulePlaceholderPage({
   if (slug === "pharmacovigilance") redirect("/pv");
   if (slug === "complaints") redirect("/complaints");
   if (slug === "supplier-quality" || slug === "supplierQuality") redirect("/sq");
+  if (slug === "maintenance" || slug === "engineering") redirect("/engineering");
+  if (slug === "hr" || slug === "people") redirect("/hr");
   const session = await getServerSession();
   if (!session) redirect("/login");
 

@@ -7,10 +7,10 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
       <section className="relative hidden overflow-hidden bg-[oklch(0.18_0.03_230)] text-white lg:flex">
         <div className="auth-grid absolute inset-0" />
         <div className="relative z-10 flex w-full flex-col justify-between p-10">
-          <BrandMark inverted />
+          <BrandMark inverted size="lg" />
           <div className="max-w-lg">
             <p className="text-xs tracking-[0.2em] text-teal-200/80 uppercase">
-              Contract manufacturing operations
+              {appConfig.companyName} manufacturing operations
             </p>
             <h1 className="mt-4 font-heading text-4xl leading-tight font-semibold">
               A controlled workspace for GMP-aligned plant operations.

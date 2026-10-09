@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { requireSession } from "@/lib/auth/server";
-import { hasAnyPermission } from "@/lib/permissions/permission-service";
+import { canAccessAny } from "@/lib/permissions/permission-service";
 import { masterErrorResponse, requireIdToken } from "@/lib/masters/http";
 import { createNamedError } from "@/lib/masters/errors";
 import { loadProductionDetail } from "@/lib/production/dispatch";
@@ -14,7 +14,7 @@ export async function GET(
     const { resource, id } = await context.params;
     if (!isProductionResource(resource)) throw createNamedError("ValidationError", "Unknown production resource.");
     const session = await requireSession();
-    if (!hasAnyPermission(session.permissions, READ_ALIASES[resource])) {
+    if (!canAccessAny(session, READ_ALIASES[resource])) {
       throw createNamedError("ForbiddenError", "You do not have permission for this action.");
     }
     const idToken = requireIdToken(request);

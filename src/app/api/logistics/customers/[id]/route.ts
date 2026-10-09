@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { requireSession } from "@/lib/auth/server";
-import { hasAnyPermission } from "@/lib/permissions/permission-service";
+import { canAccessAny } from "@/lib/permissions/permission-service";
 import { masterErrorResponse, requireIdToken } from "@/lib/masters/http";
 import { createNamedError } from "@/lib/masters/errors";
 import { loadCustomerDistribution } from "@/lib/logistics/query";
@@ -8,7 +8,7 @@ import { loadCustomerDistribution } from "@/lib/logistics/query";
 export async function GET(request: Request, context: { params: Promise<{ id: string }> }) {
   try {
     const session = await requireSession();
-    if (!hasAnyPermission(session.permissions, ["warehouse:read", "customers:read"])) {
+    if (!canAccessAny(session, ["warehouse:read", "customers:read"])) {
       throw createNamedError("ForbiddenError", "You do not have permission for this action.");
     }
     const { id } = await context.params;

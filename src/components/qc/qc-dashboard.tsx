@@ -35,7 +35,7 @@ function DashboardInner() {
     return () => window.clearTimeout(timer);
   }, []);
 
-  if (!stats && !error) return <LoadingState />;
+  if (!stats && !error) return <LoadingState variant="page" />;
   if (error || !stats) {
     return <EmptyState title="Unable to load QC metrics" description={error || "Try again after signing in."} />;
   }

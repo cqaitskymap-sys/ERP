@@ -16,7 +16,12 @@
     "test:pv": "npx --yes tsx src/lib/pv/self-test.ts",
     "test:complaints": "npx --yes tsx src/lib/complaints/self-test.ts",
     "test:sq": "npx --yes tsx src/lib/supplier-quality/self-test.ts",
-    "test:logistics": "npx --yes tsx src/lib/logistics/self-test.ts"
+    "test:logistics": "npx --yes tsx src/lib/logistics/self-test.ts",
+    "test:sales": "npx --yes tsx src/lib/sales/self-test.ts",
+    "test:finance": "npx --yes tsx src/lib/finance/self-test.ts",
+    "test:costing": "npx --yes tsx src/lib/costing/self-test.ts",
+    "test:engineering": "npx --yes tsx src/lib/engineering/self-test.ts",
+    "test:hr": "npx --yes tsx src/lib/hr/self-test.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.9.1",

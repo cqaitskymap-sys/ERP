@@ -158,8 +158,12 @@ export async function writeUserProfile(
   profile: UserProfile,
   idToken: string
 ) {
+  // Permissions are derived from roles at read time — never persist the full matrix
+  // (it is thousands of entries and trips privileged-field update rules on catalog growth).
+  const { permissions: _permissions, ...persistable } = profile;
   const payload = encodeDocument({
-    ...profile,
+    ...persistable,
+    roles: profile.roles?.length ? profile.roles : [profile.role],
     updatedAt: new Date().toISOString(),
   });
 

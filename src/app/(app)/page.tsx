@@ -1,265 +1,207 @@
 "use client";
 
-import Link from "next/link";
-import {
-  Area,
-  AreaChart,
-  CartesianGrid,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from "recharts";
-import {
-  ArrowUpRight,
-  CheckCircle2,
-  CircleDashed,
-  ShieldCheck,
-} from "lucide-react";
-import { PageHeader } from "@/components/layout/page-header";
+import { useEffect, useRef, useState } from "react";
+import { ArrowRight, LayoutGrid, Search, X } from "lucide-react";
 import { StatusBadge } from "@/components/feedback/status-badge";
 import { EmptyState } from "@/components/feedback/empty-state";
-import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { useAuth } from "@/hooks/use-auth";
-import { getFirebaseInitSnapshot } from "@/lib/firebase/client";
-import { navigation } from "@/lib/config/navigation";
-import { appConfig } from "@/lib/config/app";
+import { useModuleWorkspace } from "@/lib/modules/module-workspace-context";
+import {
+  WORKSPACE_CATEGORIES,
+  WORKSPACE_MODULES,
+} from "@/lib/config/workspace-modules";
+import { cn } from "@/lib/utils";
 
-const readinessSeries = [
-  { label: "Mon", value: 12 },
-  { label: "Tue", value: 18 },
-  { label: "Wed", value: 16 },
-  { label: "Thu", value: 22 },
-  { label: "Fri", value: 28 },
-  { label: "Sat", value: 24 },
-  { label: "Sun", value: 31 },
-];
+export default function ModulePickerPage() {
+  const { user, profile, can } = useAuth();
+  const { selectModule } = useModuleWorkspace();
+  const [query, setQuery] = useState("");
+  const searchRef = useRef<HTMLInputElement>(null);
 
-export default function DashboardPage() {
-  const { user, profile, firebaseReady } = useAuth();
-  const firebase = getFirebaseInitSnapshot();
-  const modules = navigation.flatMap((section) => section.items);
-  const readyCount = modules.filter((item) => item.status === "ready").length;
+  const modules = WORKSPACE_MODULES.filter((module) => can(module.permission));
+  const normalizedQuery = query.trim().toLowerCase();
+  const filteredModules = normalizedQuery
+    ? modules.filter((module) =>
+        [module.label, module.description, module.category]
+          .join(" ")
+          .toLowerCase()
+          .includes(normalizedQuery)
+      )
+    : modules;
+
+  const sections = WORKSPACE_CATEGORIES.map((category) => ({
+    ...category,
+    items: filteredModules.filter((module) => module.category === category.id),
+  })).filter((section) => section.items.length > 0);
+
+  useEffect(() => {
+    function onKeyDown(event: KeyboardEvent) {
+      if (event.key !== "/" || event.metaKey || event.ctrlKey || event.altKey) {
+        return;
+      }
+      const target = event.target as HTMLElement | null;
+      if (
+        target &&
+        (target.tagName === "INPUT" ||
+          target.tagName === "TEXTAREA" ||
+          target.isContentEditable)
+      ) {
+        return;
+      }
+      event.preventDefault();
+      searchRef.current?.focus();
+    }
+
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, []);
+
+  const displayName = profile?.name || user?.displayName || "operator";
+  const firstName = displayName.split(/\s+/)[0] || displayName;
 
   return (
-    <div>
-      <PageHeader
-        title="Command center"
-        description={`${appConfig.companyName}. The shell is live. Business modules will attach to this operating picture without changing the platform architecture.`}
-        actions={
-          <Button asChild>
-            <Link href="/foundation">
-              Review foundation
-              <ArrowUpRight />
-            </Link>
-          </Button>
-        }
-      />
+    <div className="relative min-h-[calc(100vh-7rem)]">
+      <div className="pointer-events-none absolute inset-0 overflow-hidden">
+        <div className="absolute inset-x-0 -top-24 h-[28rem] bg-[radial-gradient(ellipse_at_top,color-mix(in_oklch,var(--primary)_22%,transparent),transparent_68%)]" />
+        <div className="absolute top-40 -right-24 size-[22rem] rounded-full bg-[radial-gradient(circle,color-mix(in_oklch,var(--primary)_10%,transparent),transparent_70%)] blur-2xl" />
+        <div className="auth-grid absolute inset-0 opacity-[0.35] dark:opacity-50" />
+      </div>
 
-      <div className="mb-6 rounded-2xl border bg-[linear-gradient(135deg,color-mix(in_oklch,var(--primary)_12%,transparent),transparent_55%)] p-6">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-          <div>
-            <p className="text-xs tracking-[0.18em] text-muted-foreground uppercase">
-              Plant workspace
-            </p>
-            <h2 className="mt-2 font-heading text-2xl font-semibold">
-              {user
-                ? `Welcome back, ${profile?.name || user.displayName || "operator"}`
-                : "Foundation is ready for manufacturing modules"}
-            </h2>
-            <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
-              No commercial, inventory, or batch figures are hardcoded here.
-              Cards below report platform readiness only.
-            </p>
+      <div className="relative mx-auto max-w-6xl">
+        <header className="mb-10 max-w-3xl">
+          <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/8 px-3 py-1 text-xs font-medium text-primary">
+            <span className="size-1.5 rounded-full bg-primary" />
+            {modules.length} workspace
+            {modules.length === 1 ? "" : "s"} available
           </div>
-          <div className="flex flex-wrap gap-2">
-            <StatusBadge
-              label={firebaseReady ? "Firebase connected" : "Firebase incomplete"}
-              tone={firebaseReady ? "success" : "warning"}
-            />
-            <StatusBadge
-              label={appConfig.requireAuth ? "Auth required" : "Auth optional"}
-              tone="info"
-            />
+          <h1 className="mt-5 font-heading text-4xl font-semibold tracking-tight sm:text-5xl">
+            Welcome back, {firstName}
+          </h1>
+          <p className="mt-3 max-w-xl text-base leading-7 text-muted-foreground">
+            Pick one module to focus. Everything else stays out of the way until
+            you switch.
+          </p>
+
+          <div className="group relative mt-7 max-w-xl">
+            <div className="pointer-events-none absolute inset-0 rounded-2xl bg-gradient-to-r from-primary/25 via-primary/10 to-transparent opacity-0 blur-md transition-opacity duration-300 group-focus-within:opacity-100" />
+            <div className="relative flex items-center rounded-2xl border border-border/80 bg-card/70 shadow-[inset_0_1px_0_0_color-mix(in_oklch,white_6%,transparent)] backdrop-blur-md transition-[border-color,box-shadow,background-color] group-focus-within:border-primary/45 group-focus-within:bg-card/90 group-focus-within:shadow-[0_0_0_3px_color-mix(in_oklch,var(--primary)_18%,transparent),0_12px_32px_-20px_color-mix(in_oklch,var(--primary)_45%,transparent)]">
+              <Search className="ml-4 size-4 shrink-0 text-muted-foreground transition-colors group-focus-within:text-primary" />
+              <input
+                ref={searchRef}
+                type="search"
+                value={query}
+                onChange={(event) => setQuery(event.target.value)}
+                placeholder="Search modules, workspaces…"
+                aria-label="Search modules"
+                className="h-12 w-full bg-transparent px-3 text-sm outline-none placeholder:text-muted-foreground/70"
+              />
+              {query ? (
+                <button
+                  type="button"
+                  onClick={() => setQuery("")}
+                  aria-label="Clear search"
+                  className="mr-2 inline-flex size-8 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                >
+                  <X className="size-3.5" />
+                </button>
+              ) : (
+                <kbd className="mr-3 hidden h-7 shrink-0 items-center rounded-lg border border-border/70 bg-background/60 px-2 font-sans text-[10px] font-medium tracking-wide text-muted-foreground sm:inline-flex">
+                  /
+                </kbd>
+              )}
+            </div>
           </div>
-        </div>
-      </div>
+        </header>
 
-      <div className="mb-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <MetricCard
-          label="Platform status"
-          value={firebase.ready ? "Ready" : "Setup"}
-          detail={firebase.projectId ?? "Project id missing"}
-        />
-        <MetricCard
-          label="Reusable modules"
-          value={`${readyCount}/${modules.length}`}
-          detail="Shell routes available, business logic deferred"
-        />
-        <MetricCard
-          label="Identity"
-          value={user ? "Signed in" : "Guest"}
-          detail={user?.email ?? "Sign in to persist audit events"}
-        />
-        <MetricCard
-          label="Compliance posture"
-          value="Designed"
-          detail="RBAC, audit trail, and validation are wired"
-        />
-      </div>
-
-      <div className="grid gap-6 xl:grid-cols-[1.4fr_0.8fr]">
-        <Card>
-          <CardHeader>
-            <CardTitle>Foundation activity</CardTitle>
-            <CardDescription>
-              Illustrative platform signal only. Production charts will bind to
-              live module collections later.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="h-72">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={readinessSeries}>
-                <defs>
-                  <linearGradient id="readiness" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="var(--primary)" stopOpacity={0.35} />
-                    <stop offset="95%" stopColor="var(--primary)" stopOpacity={0.02} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
-                <XAxis dataKey="label" className="text-xs" />
-                <YAxis className="text-xs" />
-                <Tooltip />
-                <Area
-                  type="monotone"
-                  dataKey="value"
-                  stroke="var(--primary)"
-                  fill="url(#readiness)"
-                />
-              </AreaChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Service checks</CardTitle>
-            <CardDescription>Initialization snapshot for this session.</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <ServiceRow
-              label="Firebase app"
-              ok={firebase.ready}
-              detail={firebase.projectId ?? "Missing configuration"}
-            />
-            <ServiceRow
-              label="Authentication"
-              ok={firebase.ready}
-              detail="Email and password provider ready"
-            />
-            <ServiceRow
-              label="Firestore"
-              ok={firebase.ready}
-              detail="Generic document services available"
-            />
-            <ServiceRow
-              label="Storage"
-              ok={firebase.ready}
-              detail="Upload helpers available for later modules"
-            />
-          </CardContent>
-        </Card>
-      </div>
-
-      <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-        {modules
-          .filter((item) => item.id !== "dashboard")
-          .map((item) => {
-            const Icon = item.icon;
-            return (
-              <Link key={item.id} href={item.href} className="group">
-                <Card className="h-full transition-all group-hover:-translate-y-0.5 group-hover:shadow-md">
-                  <CardHeader>
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="flex size-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                        <Icon className="size-5" />
-                      </div>
-                      <StatusBadge
-                        label={item.status === "ready" ? "Ready" : "Planned"}
-                        tone={item.status === "ready" ? "success" : "neutral"}
-                      />
+        {modules.length === 0 ? (
+          <EmptyState
+            icon={LayoutGrid}
+            title="No modules available"
+            description="Your account does not have access to any business modules yet. Ask an administrator to assign roles."
+          />
+        ) : sections.length === 0 ? (
+          <EmptyState
+            icon={Search}
+            title="No matching modules"
+            description={`Nothing matched “${query.trim()}”. Try a different name or clear the search.`}
+          />
+        ) : (
+          <div className="space-y-14">
+            {sections.map((section) => (
+              <section key={section.id} className="scroll-mt-8">
+                <div className="mb-5 flex items-end justify-between gap-4">
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-3">
+                      <span className="h-6 w-1 shrink-0 rounded-full bg-primary" />
+                      <h2 className="font-heading text-xl font-semibold tracking-tight">
+                        {section.label}
+                      </h2>
                     </div>
-                    <CardTitle className="mt-2">{item.label}</CardTitle>
-                    <CardDescription>{item.description}</CardDescription>
-                  </CardHeader>
-                </Card>
-              </Link>
-            );
-          })}
-      </div>
+                    <p className="mt-2 ml-4 text-sm text-muted-foreground">
+                      {section.description}
+                    </p>
+                  </div>
+                  <span className="hidden shrink-0 rounded-md border border-border/80 bg-card/60 px-2.5 py-1 text-[11px] font-medium tracking-[0.12em] text-muted-foreground uppercase sm:inline-flex">
+                    {section.items.length} module
+                    {section.items.length === 1 ? "" : "s"}
+                  </span>
+                </div>
 
-      <div className="mt-6">
-        <EmptyState
-          icon={ShieldCheck}
-          title="No operational records in this phase"
-          description="Inventory, batches, deviations, and commercial documents will appear here only after their modules are implemented."
-          action={
-            <Button asChild variant="outline">
-              <Link href="/foundation">Open reusable component lab</Link>
-            </Button>
-          }
-        />
-      </div>
-    </div>
-  );
-}
+                <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                  {section.items.map((module) => {
+                    const Icon = module.icon;
+                    const isPlanned = module.status === "planned";
 
-function MetricCard({
-  label,
-  value,
-  detail,
-}: {
-  label: string;
-  value: string;
-  detail: string;
-}) {
-  return (
-    <Card>
-      <CardHeader>
-        <CardDescription>{label}</CardDescription>
-        <CardTitle className="text-2xl">{value}</CardTitle>
-      </CardHeader>
-      <CardContent className="text-sm text-muted-foreground">{detail}</CardContent>
-    </Card>
-  );
-}
+                    return (
+                      <button
+                        key={module.id}
+                        type="button"
+                        onClick={() => selectModule(module.id)}
+                        className={cn(
+                          "group relative flex h-full flex-col overflow-hidden rounded-2xl border border-border/80 bg-card/70 p-5 text-left shadow-sm backdrop-blur-sm",
+                          "transition-[transform,border-color,box-shadow,background-color] duration-200",
+                          "hover:-translate-y-1 hover:border-primary/45 hover:bg-card hover:shadow-[0_16px_40px_-24px_color-mix(in_oklch,var(--primary)_55%,transparent)]",
+                          "focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none",
+                          isPlanned && "opacity-90"
+                        )}
+                      >
+                        <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/50 to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
+                        <div className="pointer-events-none absolute -top-16 -right-12 size-36 rounded-full bg-primary/0 blur-2xl transition-colors group-hover:bg-primary/10" />
 
-function ServiceRow({
-  label,
-  ok,
-  detail,
-}: {
-  label: string;
-  ok: boolean;
-  detail: string;
-}) {
-  return (
-    <div className="flex items-start gap-3 rounded-lg border px-3 py-2.5">
-      {ok ? (
-        <CheckCircle2 className="mt-0.5 size-4 text-emerald-600" />
-      ) : (
-        <CircleDashed className="mt-0.5 size-4 text-amber-600" />
-      )}
-      <div>
-        <p className="text-sm font-medium">{label}</p>
-        <p className="text-xs text-muted-foreground">{detail}</p>
+                        <div className="relative flex items-start justify-between gap-3">
+                          <div className="flex size-12 items-center justify-center rounded-2xl bg-gradient-to-br from-primary/18 to-primary/5 text-primary ring-1 ring-primary/15 transition-all group-hover:from-primary/28 group-hover:to-primary/10 group-hover:ring-primary/30">
+                            <Icon className="size-5" strokeWidth={1.75} />
+                          </div>
+                          {isPlanned ? (
+                            <StatusBadge label="Planned" tone="neutral" />
+                          ) : null}
+                        </div>
+
+                        <div className="relative mt-5 flex flex-1 flex-col">
+                          <h3 className="font-heading text-[1.05rem] font-semibold tracking-tight">
+                            {module.label}
+                          </h3>
+                          <p className="mt-2 flex-1 text-sm leading-6 text-muted-foreground">
+                            {module.description}
+                          </p>
+
+                          <div className="mt-5 flex items-center justify-between border-t border-border/60 pt-4">
+                            <span className="text-sm font-medium text-primary transition-colors group-hover:text-primary">
+                              {isPlanned ? "Preview workspace" : "Open workspace"}
+                            </span>
+                            <span className="inline-flex size-8 items-center justify-center rounded-full bg-primary/10 text-primary transition-transform duration-200 group-hover:translate-x-0.5 group-hover:bg-primary group-hover:text-primary-foreground">
+                              <ArrowRight className="size-4" />
+                            </span>
+                          </div>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </section>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

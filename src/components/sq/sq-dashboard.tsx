@@ -33,7 +33,7 @@ function Inner() {
     return () => window.clearTimeout(timer);
   }, []);
 
-  if (!stats && !error) return <LoadingState />;
+  if (!stats && !error) return <LoadingState variant="page" />;
   if (error || !stats) return <EmptyState title="Unable to load supplier-quality metrics" description={error || "Try again after signing in."} />;
 
   const kpis = (stats.kpis || {}) as Record<string, number>;

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { requireSession } from "@/lib/auth/server";
-import { hasAnyPermission } from "@/lib/permissions/permission-service";
+import { canAccessAny } from "@/lib/permissions/permission-service";
 import { masterErrorResponse, requireIdToken } from "@/lib/masters/http";
 import { createNamedError } from "@/lib/masters/errors";
 import { loadQcDetail } from "@/lib/qc/dispatch";
@@ -11,7 +11,7 @@ export async function GET(request: Request, context: { params: Promise<{ resourc
     const { resource, id } = await context.params;
     if (!isQcResource(resource)) throw createNamedError("ValidationError", "Unknown QC resource.");
     const session = await requireSession();
-    if (!hasAnyPermission(session.permissions, READ_ALIASES[resource])) {
+    if (!canAccessAny(session, READ_ALIASES[resource])) {
       throw createNamedError("ForbiddenError", "You do not have permission for this action.");
     }
     const idToken = requireIdToken(request);

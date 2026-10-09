@@ -26,9 +26,14 @@ export const customerTypeOptions = options(CUSTOMER_TYPES, {
   domestic: "Domestic",
   export: "Export",
   distributor: "Distributor",
+  stockist: "Stockist",
+  hospital: "Hospital",
+  institution: "Institution",
   marketing_company: "Marketing Company",
   pharma_company: "Pharma Company",
+  brand_owner: "Brand Owner",
   contract_customer: "Contract Customer",
+  third_party_manufacturing: "Third-Party Manufacturing Customer",
   other: "Other",
 });
 

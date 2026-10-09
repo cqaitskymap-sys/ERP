@@ -2,10 +2,23 @@ export const CUSTOMER_TYPES = [
   "domestic",
   "export",
   "distributor",
+  "stockist",
+  "hospital",
+  "institution",
   "marketing_company",
   "pharma_company",
+  "brand_owner",
   "contract_customer",
+  "third_party_manufacturing",
   "other",
+] as const;
+
+export const COMMERCIAL_CUSTOMER_APPROVAL_STATUSES = [
+  "not_started",
+  "pending",
+  "approved",
+  "rejected",
+  "conditional",
 ] as const;
 
 export const PARTNER_STATUSES = [

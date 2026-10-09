@@ -1,13 +1,13 @@
 import { NextResponse } from "next/server";
 import { requireSession } from "@/lib/auth/server";
-import { hasAnyPermission } from "@/lib/permissions/permission-service";
+import { canAccessAny } from "@/lib/permissions/permission-service";
 import { masterErrorResponse, requireIdToken } from "@/lib/masters/http";
 import { loadPartnerDashboard } from "@/lib/partners/dashboard";
 
 export async function GET(request: Request) {
   try {
     const session = await requireSession();
-    if (!hasAnyPermission(session.permissions, ["customers:read", "vendors:read"])) {
+    if (!canAccessAny(session, ["customers:read", "vendors:read"])) {
       return NextResponse.json({ ok: false, error: "You do not have permission for this action." }, { status: 403 });
     }
     const idToken = requireIdToken(request);

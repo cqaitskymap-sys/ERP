@@ -4,27 +4,40 @@ import { useState } from "react";
 import { Sidebar } from "@/components/layout/sidebar";
 import { TopNav } from "@/components/layout/top-nav";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
+import { useModuleWorkspace } from "@/lib/modules/module-workspace-context";
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const { isPicker } = useModuleWorkspace();
+
+  if (isPicker) {
+    return (
+      <div className="flex h-screen overflow-hidden bg-background">
+        <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
+          <TopNav onOpenSidebar={() => setMobileOpen(true)} picker />
+          <main className="min-h-0 flex-1 overflow-y-auto px-4 py-6 lg:px-8">
+            {children}
+          </main>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="flex min-h-screen bg-background">
-      <div className="hidden lg:block">
-        <div className="sticky top-0 h-screen">
-          <Sidebar
-            collapsed={collapsed}
-            onToggle={() => setCollapsed((value) => !value)}
-          />
-        </div>
+    <div className="flex h-screen overflow-hidden bg-background">
+      <div className="hidden h-full shrink-0 lg:block">
+        <Sidebar
+          collapsed={collapsed}
+          onToggle={() => setCollapsed((value) => !value)}
+        />
       </div>
 
       <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
         <SheetContent
           side="left"
           showCloseButton={false}
-          className="w-[272px] border-0 p-0 sm:max-w-[272px]"
+          className="h-full w-[272px] border-0 p-0 sm:max-w-[272px]"
         >
           <Sidebar
             collapsed={false}
@@ -34,9 +47,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </SheetContent>
       </Sheet>
 
-      <div className="flex min-w-0 flex-1 flex-col">
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
         <TopNav onOpenSidebar={() => setMobileOpen(true)} />
-        <main className="flex-1 px-4 py-6 lg:px-8">
+        <main className="min-h-0 flex-1 overflow-y-auto px-4 py-6 lg:px-8">
           <div className="mx-auto w-full max-w-[1400px]">{children}</div>
         </main>
       </div>

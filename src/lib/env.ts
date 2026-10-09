@@ -4,11 +4,9 @@ function readBoolean(value: string | undefined, fallback = false): boolean {
 }
 
 export const env = {
-  appName: process.env.NEXT_PUBLIC_APP_NAME?.trim() || "Aetheris",
-  appShortName: process.env.NEXT_PUBLIC_APP_SHORT_NAME?.trim() || "ATH",
-  companyName:
-    process.env.NEXT_PUBLIC_COMPANY_NAME?.trim() ||
-    "Contract Pharmaceutical Manufacturing",
+  appName: process.env.NEXT_PUBLIC_APP_NAME?.trim() || "PATRI",
+  appShortName: process.env.NEXT_PUBLIC_APP_SHORT_NAME?.trim() || "SP",
+  companyName: process.env.NEXT_PUBLIC_COMPANY_NAME?.trim() || "PATRI",
   appUrl: process.env.NEXT_PUBLIC_APP_URL?.trim() || "http://localhost:3000",
   requireAuth: readBoolean(process.env.NEXT_PUBLIC_REQUIRE_AUTH, true),
   sessionSecret:

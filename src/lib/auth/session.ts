@@ -27,9 +27,11 @@ function compactSession(payload: SessionPayload) {
 }
 
 export function hydrateSession(payload: SessionPayload): SessionPayload {
-  const roles = payload.roles?.length ? payload.roles : [payload.role];
+  const role = payload.role;
+  const roles = payload.roles?.length ? payload.roles : role ? [role] : [];
   return {
     ...payload,
+    role: role || roles[0],
     roles,
     permissions: resolvePermissions(roles),
   };

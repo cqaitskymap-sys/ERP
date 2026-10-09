@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { requireSession } from "@/lib/auth/server";
-import { hasAnyPermission } from "@/lib/permissions/permission-service";
+import { canAccessAny } from "@/lib/permissions/permission-service";
 import { masterErrorResponse, requireIdToken } from "@/lib/masters/http";
 import { createNamedError } from "@/lib/masters/errors";
 import { loadPurchaseTracking } from "@/lib/procurement/query";
@@ -11,7 +11,7 @@ export async function GET(
 ) {
   try {
     const session = await requireSession();
-    if (!hasAnyPermission(session.permissions, ["purchaseTracking:read", "purchaseOrder:read"])) {
+    if (!canAccessAny(session, ["purchaseTracking:read", "purchaseOrder:read"])) {
       throw createNamedError("ForbiddenError", "You do not have permission for this action.");
     }
     const { id } = await context.params;

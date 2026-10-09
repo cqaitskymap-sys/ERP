@@ -43,7 +43,7 @@ export function QuarantineBoard() {
     }, 0);
     return () => window.clearTimeout(timer);
   }, []);
-  if (!stats && !error) return <LoadingState />;
+  if (!stats && !error) return <LoadingState variant="page" />;
   if (error || !stats) return <EmptyState title="Unable to load quarantine" description={error || ""} />;
   const rows = (stats.rows as Array<Record<string, unknown> & { id: string }>) || [];
   return (
@@ -89,7 +89,7 @@ export function ExpiryBoard() {
     }, 0);
     return () => window.clearTimeout(timer);
   }, []);
-  if (!stats && !error) return <LoadingState />;
+  if (!stats && !error) return <LoadingState variant="page" />;
   if (error || !stats) return <EmptyState title="Unable to load expiry" description={error || ""} />;
   const counts = (stats.counts || {}) as Record<string, number>;
   const quantities = (stats.quantities || {}) as Record<string, number>;
