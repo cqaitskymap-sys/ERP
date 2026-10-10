@@ -36,8 +36,8 @@ async function main() {
 
   const company = {
     companyCode: "ATH1",
-    companyName: "Aetheris Test Pharma",
-    legalName: "Aetheris Test Pharma Pvt Ltd",
+    companyName: "PATRI Test Pharma",
+    legalName: "PATRI Test Pharma Pvt Ltd",
     addressLine1: "Plot 1 Industrial Area",
     city: "Hyderabad",
     state: "Telangana",
