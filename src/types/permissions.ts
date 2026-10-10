@@ -232,6 +232,18 @@ export const PERMISSION_MODULES = [
   "hrSeparation",
   "hrReports",
   "hrAudit",
+  "dms",
+  "dmsDocument",
+  "dmsReview",
+  "dmsApproval",
+  "dmsRelease",
+  "dmsChangeRequest",
+  "dmsPeriodicReview",
+  "dmsExternal",
+  "dmsConfidential",
+  "dmsNumbering",
+  "dmsReports",
+  "dmsAudit",
 ] as const;
 
 export type PermissionModule = (typeof PERMISSION_MODULES)[number];

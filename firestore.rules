@@ -367,6 +367,44 @@ service cloud.firestore {
         || hasRole('management') || hasRole('finance');
     }
 
+    function isTrainingWriteCollection(name) {
+      return name in ['trainingCourses', 'trainingAssignments', 'trainingCompletions'];
+    }
+
+    function canWriteTrainingRecords() {
+      return canWriteHr() || hasRole('qa') || hasRole('trainer') || hasRole('department_head');
+    }
+
+    function isDmsCollection(name) {
+      return name in [
+        'dmsDocuments', 'dmsDocumentVersions', 'dmsDocumentReviews',
+        'dmsDocumentApprovals', 'dmsDocumentChangeRequests', 'dmsPeriodicReviews',
+        'dmsTemplates', 'dmsExternalDocuments', 'dmsRetentionRecords',
+        'dmsSettings', 'dmsAuditRecords', 'dmsIdempotency'
+      ];
+    }
+
+    function canReadDms() {
+      return callerActive() && (
+        hasRole('super_admin') || hasRole('admin') || hasRole('qa')
+        || hasRole('department_head') || hasRole('regulatory') || hasRole('management')
+        || hasRole('production') || hasRole('qc') || hasRole('maintenance')
+        || hasRole('trainer') || hasRole('hr') || hasRole('employee')
+      );
+    }
+
+    function canWriteDms() {
+      return hasRole('super_admin') || hasRole('admin') || hasRole('qa')
+        || hasRole('department_head') || hasRole('regulatory');
+    }
+
+    function isImmutableDmsCollection(name) {
+      return name in [
+        'dmsDocumentReviews', 'dmsDocumentApprovals', 'dmsRetentionRecords',
+        'dmsAuditRecords', 'dmsIdempotency'
+      ];
+    }
+
     function isProductionCollection(name) {
       return name in [
         'productionPlans', 'productionPlanItems', 'productionSchedules', 'batchPlans',
@@ -688,11 +726,18 @@ service cloud.firestore {
         || (isCostingCollection(collection) && canReadCosting())
         || (isEngineeringCollection(collection) && canReadEngineering())
         || (isHrCollection(collection) && canReadHr()
-            && (!isSensitiveHrCollection(collection) || canReadSensitiveHr()));
+            && (!isSensitiveHrCollection(collection) || canReadSensitiveHr()))
+        || (isDmsCollection(collection) && canReadDms());
       allow create: if canWriteAnyBusinessData()
         && request.resource.data.createdBy == request.auth.uid;
       allow create: if isHrCollection(collection)
         && canWriteHr()
+        && request.resource.data.createdBy == request.auth.uid;
+      allow create: if isTrainingWriteCollection(collection)
+        && canWriteTrainingRecords()
+        && request.resource.data.createdBy == request.auth.uid;
+      allow create: if isDmsCollection(collection)
+        && canWriteDms()
         && request.resource.data.createdBy == request.auth.uid;
       allow create: if isEngineeringCollection(collection)
         && canWriteEngineering()
@@ -752,6 +797,13 @@ service cloud.firestore {
       allow update: if isHrCollection(collection)
         && canWriteHr()
         && !isImmutableHrCollection(collection)
+        && auditFieldsLocked();
+      allow update: if isTrainingWriteCollection(collection)
+        && canWriteTrainingRecords()
+        && auditFieldsLocked();
+      allow update: if isDmsCollection(collection)
+        && canWriteDms()
+        && !isImmutableDmsCollection(collection)
         && auditFieldsLocked();
       allow update: if isEngineeringCollection(collection)
         && canWriteEngineering()
@@ -833,7 +885,8 @@ service cloud.firestore {
         && !isFinanceCollection(collection)
         && !isCostingCollection(collection)
         && !isEngineeringCollection(collection)
-        && !isHrCollection(collection);
+        && !isHrCollection(collection)
+        && !isDmsCollection(collection);
     }
 
     match /{document=**} {

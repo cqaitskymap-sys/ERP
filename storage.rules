@@ -127,8 +127,44 @@ service firebase.storage {
         && allowedDocumentType();
     }
 
+    function dmsAccount() {
+      return firestore.get(/databases/(default)/documents/users/$(request.auth.uid));
+    }
+
+    function dmsHasRole(role) {
+      return signedIn()
+        && firestore.exists(/databases/(default)/documents/users/$(request.auth.uid))
+        && (
+          dmsAccount().data.role == role
+          || (dmsAccount().data.keys().hasAny(['roles']) && role in dmsAccount().data.roles)
+        );
+    }
+
+    function canReadDmsObject(classification) {
+      return dmsHasRole('super_admin') || dmsHasRole('admin') || dmsHasRole('qa')
+        || dmsHasRole('regulatory') || dmsHasRole('management')
+        || (classification == 'internal' && (
+          dmsHasRole('department_head') || dmsHasRole('production') || dmsHasRole('qc')
+          || dmsHasRole('maintenance') || dmsHasRole('trainer') || dmsHasRole('hr')
+          || dmsHasRole('employee')
+        ));
+    }
+
+    function canWriteDmsObject() {
+      return dmsHasRole('super_admin') || dmsHasRole('admin') || dmsHasRole('qa')
+        || dmsHasRole('department_head') || dmsHasRole('regulatory');
+    }
+
+    match /dms/{classification}/{documentId}/versions/{versionId}/{fileName} {
+      allow read: if canReadDmsObject(classification);
+      allow write: if canWriteDmsObject()
+        && request.resource.size < 10 * 1024 * 1024
+        && allowedDocumentType();
+      allow delete: if false;
+    }
+
     match /{allPaths=**} {
-      allow read: if signedIn();
+      allow read: if signedIn() && !allPaths.matches('dms/.*');
       allow write: if false;
     }
   }

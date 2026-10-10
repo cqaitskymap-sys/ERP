@@ -21,7 +21,8 @@
     "test:finance": "npx --yes tsx src/lib/finance/self-test.ts",
     "test:costing": "npx --yes tsx src/lib/costing/self-test.ts",
     "test:engineering": "npx --yes tsx src/lib/engineering/self-test.ts",
-    "test:hr": "npx --yes tsx src/lib/hr/self-test.ts"
+    "test:hr": "npx --yes tsx src/lib/hr/self-test.ts",
+    "test:dms": "npx --yes tsx src/lib/dms/self-test.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.9.1",

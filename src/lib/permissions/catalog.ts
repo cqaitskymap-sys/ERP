@@ -218,6 +218,30 @@ const hrAll: Permission[] = [
 
 const hrRead: Permission[] = hrModules.flatMap((module) => read(module));
 
+const dmsModules = [
+  "dms",
+  "dmsDocument",
+  "dmsReview",
+  "dmsApproval",
+  "dmsRelease",
+  "dmsChangeRequest",
+  "dmsPeriodicReview",
+  "dmsExternal",
+  "dmsConfidential",
+  "dmsNumbering",
+  "dmsReports",
+  "dmsAudit",
+] as const;
+
+const dmsAll: Permission[] = dmsModules.flatMap((module) => allActions(module));
+
+const dmsRead: Permission[] = [
+  ...read("dms"),
+  ...read("dmsDocument"),
+  ...read("dmsReview"),
+  ...read("dmsReports"),
+];
+
 export const roleCatalog: RoleDefinition[] = [
   {
     id: "super_admin",
@@ -334,6 +358,7 @@ export const roleCatalog: RoleDefinition[] = [
       ...costingAll,
       ...engineeringAll,
       ...hrAll,
+      ...dmsAll,
       ...allActions("users"),
       ...read("audit"),
       ...actions("audit", ["export", "print"]),
@@ -352,6 +377,7 @@ export const roleCatalog: RoleDefinition[] = [
       ...read("financeBudget"),
       ...read("audit"),
       ...actions("audit", ["export", "print"]),
+      ...dmsRead,
     ],
   },
   {
@@ -380,6 +406,12 @@ export const roleCatalog: RoleDefinition[] = [
       ...read("materials"),
       ...read("customers"),
       ...read("vendors"),
+      ...dmsRead,
+      ...actions("dmsDocument", ["create", "update", "submit"]),
+      ...actions("dmsReview", ["review"]),
+      ...actions("dmsChangeRequest", ["create", "read", "submit", "update"]),
+      ...actions("dmsPeriodicReview", ["read", "review"]),
+      ...read("dmsExternal"),
       ...actions("purchaseRequisition", ["read", "approve", "reject", "export"]),
       ...actions("vendorSelection", ["read", "approve", "reject"]),
       ...actions("purchaseOrder", ["read", "approve", "reject"]),
@@ -460,6 +492,7 @@ export const roleCatalog: RoleDefinition[] = [
       ...read("warehouseLocation"),
       ...read("warehousePutaway"),
       ...read("warehousePicking"),
+      ...dmsRead,
     ],
   },
   {
@@ -595,6 +628,8 @@ export const roleCatalog: RoleDefinition[] = [
       ...allActions("qaDocumentReview"),
       ...allActions("qaCompliance"),
       ...allActions("qaReleaseCertificate"),
+      ...dmsAll,
+      ...actions("training", ["create", "read"]),
       ...read("ra"),
       ...read("raRegistration"),
       ...read("raDocument"),
@@ -669,6 +704,7 @@ export const roleCatalog: RoleDefinition[] = [
       ...read("warehouseLocation"),
       ...read("warehouseColdchain"),
       ...read("warehouseExcursion"),
+      ...dmsRead,
     ],
   },
   {
@@ -730,6 +766,10 @@ export const roleCatalog: RoleDefinition[] = [
       ...actions("customers", ["update", "approve", "qualify"]),
       ...read("vendors"),
       ...supplierQualityRead,
+      ...dmsRead,
+      ...read("dmsConfidential"),
+      ...allActions("dmsExternal"),
+      ...actions("dmsDocument", ["create", "update", "submit"]),
     ],
   },
   {
@@ -754,6 +794,7 @@ export const roleCatalog: RoleDefinition[] = [
       ...read("qcInstrument"),
       ...read("finance"),
       ...read("masters"),
+      ...dmsRead,
     ],
   },
   {
@@ -846,6 +887,10 @@ export const roleCatalog: RoleDefinition[] = [
       ...actions("hrLeave", ["approve"]),
       ...actions("hrPayroll", ["approve", "export"]),
       ...actions("hrReports", ["export", "print"]),
+      ...dmsRead,
+      ...actions("dmsReports", ["export", "print"]),
+      ...read("dmsConfidential"),
+      ...actions("dmsApproval", ["read", "approve"]),
       ...salesRead,
       ...actions("salesOrder", ["read", "approve", "reject", "export"]),
       ...actions("salesQuotation", ["read", "approve", "reject"]),
@@ -910,6 +955,7 @@ export const roleCatalog: RoleDefinition[] = [
       ...allActions("training"),
       ...read("hr"),
       ...actions("hr", ["update"]),
+      ...dmsRead,
     ],
   },
   {
@@ -917,6 +963,8 @@ export const roleCatalog: RoleDefinition[] = [
     label: "Employee",
     description: "Assigned operational tasks with limited record updates.",
     permissions: [
+      ...read("dms"),
+      ...read("dmsDocument"),
       ...read("dashboard"),
       ...actions("production", ["read", "update"]),
       ...actions("warehouse", ["read", "update"]),

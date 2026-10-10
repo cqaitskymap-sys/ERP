@@ -1461,6 +1461,24 @@ export const navigation: NavSection[] = [
     ],
   },
   {
+    id: "dms-ops",
+    label: "Document Control",
+    items: [
+      { id: "dms-dashboard", label: "Dashboard", href: "/dms", icon: LayoutDashboard, permission: "dms:read", status: "ready", description: "Controlled document, review, and training-impact metrics." },
+      { id: "dms-registry", label: "Document Registry", href: "/dms/registry", icon: ScrollText, permission: "dmsDocument:read", status: "ready", description: "Search controlled documents and open the effective version." },
+      { id: "dms-reviews", label: "Review Inbox", href: "/dms/reviews", icon: ClipboardCheck, permission: "dmsReview:read", status: "ready", description: "Documents and change requests waiting for review." },
+      { id: "dms-approvals", label: "Approvals", href: "/dms/approvals", icon: BadgeCheck, permission: "dmsApproval:read", status: "ready", description: "Documents in review that still need approval." },
+      { id: "dms-changes", label: "Change Requests", href: "/dms/change-requests", icon: GitBranch, permission: "dmsChangeRequest:read", status: "ready", description: "Document change requests linked to change control." },
+      { id: "dms-periodic", label: "Periodic Review", href: "/dms/periodic-reviews", icon: Timer, permission: "dmsPeriodicReview:read", status: "ready", description: "Due, overdue, and completed periodic reviews." },
+      { id: "dms-external", label: "External Documents", href: "/dms/external", icon: FileSpreadsheet, permission: "dmsExternal:read", status: "ready", description: "Certificates and external documents with expiry dates." },
+      { id: "dms-training", label: "SOP Training Impact", href: "/dms/training", icon: Users, permission: "dmsDocument:read", status: "ready", description: "Effective SOPs that require LMS retraining." },
+      { id: "dms-templates", label: "Numbering Templates", href: "/dms/templates", icon: Hash, permission: "dmsNumbering:read", status: "ready", description: "Document type prefixes and review intervals." },
+      { id: "dms-reports", label: "Reports", href: "/dms/reports", icon: FileSpreadsheet, permission: "dmsReports:read", status: "ready", description: "Export live document-control registers." },
+      { id: "dms-audit", label: "Audit", href: "/dms/audit", icon: History, permission: "dmsAudit:read", status: "ready", description: "Document control actions copied into the audit trail." },
+      { id: "dms-settings", label: "Settings", href: "/dms/settings", icon: SlidersHorizontal, permission: "dmsNumbering:update", status: "ready", description: "Segregation of duties, signatures, and retention." },
+    ],
+  },
+  {
     id: "ra-ops",
     label: "Regulatory Affairs",
     items: [
