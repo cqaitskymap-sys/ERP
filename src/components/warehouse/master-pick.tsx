@@ -12,6 +12,24 @@ import {
 import { listMasterRecords } from "@/lib/masters/client";
 import type { MasterEntity } from "@/types/masters";
 
+function masterLabel(row: Record<string, unknown> & { id: string }) {
+  const code = String(row.departmentCode || row.code || "");
+  const name = String(
+    row.departmentName ||
+      row.materialName ||
+      row.productName ||
+      row.warehouseName ||
+      row.locationCode ||
+      row.supplierName ||
+      row.vendorName ||
+      row.uomCode ||
+      row.name ||
+      ""
+  );
+  if (code && name && code !== name) return `${code} — ${name}`;
+  return name || code || row.id;
+}
+
 export function MasterPick({
   entity,
   label,
@@ -55,17 +73,7 @@ export function MasterPick({
         <SelectContent>
           {rows.map((row) => (
             <SelectItem key={row.id} value={row.id}>
-              {String(
-                row.materialName ||
-                  row.productName ||
-                  row.warehouseName ||
-                  row.locationCode ||
-                  row.supplierName ||
-                  row.vendorName ||
-                  row.uomCode ||
-                  row.name ||
-                  row.id
-              )}
+              {masterLabel(row)}
             </SelectItem>
           ))}
         </SelectContent>

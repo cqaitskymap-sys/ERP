@@ -233,6 +233,26 @@ export async function createDesignation(options: {
   return { id, record };
 }
 
+async function resolveDepartment(value: string, idToken: string) {
+  const direct = await readMasterDocument("departments", value, idToken);
+  if (direct) return direct;
+  const byCode = await queryMasterDocuments("departments", idToken, {
+    filters: [{ field: "departmentCode", value }],
+    limit: 2,
+  });
+  return byCode.length === 1 ? byCode[0] : null;
+}
+
+async function resolveDesignation(value: string, idToken: string) {
+  const direct = await readMasterDocument(HR_COLLECTIONS.designations, value, idToken);
+  if (direct) return direct;
+  const byCode = await queryMasterDocuments(HR_COLLECTIONS.designations, idToken, {
+    filters: [{ field: "code", value }],
+    limit: 2,
+  });
+  return byCode.length === 1 ? byCode[0] : null;
+}
+
 export async function createJobRequisition(options: {
   payload: Record<string, unknown>;
   session: SessionPayload;
@@ -242,16 +262,24 @@ export async function createJobRequisition(options: {
   const data = parseOrFail(requisitionSchema, options.payload);
   const reused = await reuseIdempotent(data.idempotencyKey, options.idToken);
   if (reused) return reused as { id: string; record: Record<string, unknown> };
-  const dept = await readMasterDocument("departments", data.departmentId, options.idToken);
-  if (!dept) fail("Department was not found.");
+  const dept = await resolveDepartment(data.departmentId, options.idToken);
+  if (!dept) fail("Department was not found. Select a department from Department Master.");
+  let designationId = data.designationId || "";
+  if (designationId) {
+    const designation = await resolveDesignation(designationId, options.idToken);
+    if (!designation) fail("Designation was not found. Leave it blank or select one from Designation Master.");
+    designationId = text(designation.id);
+  }
   const numbered = await issueHrNumber("REQ", options.session, options.idToken);
   const id = crypto.randomUUID();
   const record = {
     requisitionId: id,
     requisitionNumber: numbered.documentNumber,
     ...data,
+    departmentId: text(dept.id),
+    designationId,
     status: "draft",
-    searchIndex: searchIndex(numbered.documentNumber, data.title, data.departmentId),
+    searchIndex: searchIndex(numbered.documentNumber, data.title, text(dept.departmentCode), text(dept.departmentName)),
     ...actorStamp(options.session),
   };
   const writes: AtomicWrite[] = [writeOf(HR_COLLECTIONS.requisitions, id, record, { exists: false })];

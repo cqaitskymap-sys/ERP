@@ -58,6 +58,10 @@ export async function POST(request: Request, context: { params: Promise<{ resour
     const result = await createHrRecord(resource, body, session, idToken);
     return NextResponse.json({ ok: true, ...result });
   } catch (error) {
+    if (process.env.NODE_ENV !== "production") {
+      const err = error instanceof Error ? error : new Error(String(error));
+      console.error("[hr:create]", err.name, err.message);
+    }
     return masterErrorResponse(error);
   }
 }

@@ -28,6 +28,9 @@ export function publicMasterError(error: unknown) {
   if (/closed financial year/i.test(raw)) return raw;
   if (/conversion rule/i.test(raw)) return raw;
   if (name === "ValidationError") return raw || "Please correct the highlighted fields.";
+  if (raw && raw.length <= 200 && !/firestore|firebase|exception|\bat \w|projects\/|undefined|ECONN|token|stack/i.test(raw)) {
+    return raw;
+  }
   return "Unable to complete this request. Try again or contact an administrator.";
 }
 

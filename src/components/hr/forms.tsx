@@ -15,6 +15,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { MasterPick } from "@/components/warehouse/master-pick";
 import { createHr, listHr } from "@/lib/hr/client";
 import {
   attendanceStatusOptions,
@@ -203,6 +204,7 @@ export function DesignationForm() {
 
 export function RequisitionForm() {
   const router = useRouter();
+  const [designations, setDesignations] = useState<Array<Record<string, unknown> & { id: string }>>([]);
   const [form, setForm] = useState({
     title: "",
     departmentId: "",
@@ -214,12 +216,22 @@ export function RequisitionForm() {
     targetJoiningDate: "",
   });
 
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      void listHr("designations", { pageSize: 100 })
+        .then((result) => setDesignations(result.rows))
+        .catch(() => setDesignations([]));
+    }, 0);
+    return () => window.clearTimeout(timer);
+  }, []);
+
   return (
     <FormShell
       permission="hrRecruitment:create"
       title="New job requisition"
       description="Headcount request with department approval workflow."
       onSubmit={async () => {
+        if (!form.departmentId) throw new Error("Select a department.");
         const result = await createHr("requisitions", {
           title: form.title,
           departmentId: form.departmentId,
@@ -238,11 +250,26 @@ export function RequisitionForm() {
         <Input className="min-h-11" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} required />
       </Field>
       <div className="grid gap-3 sm:grid-cols-2">
-        <Field label="Department ID">
-          <Input className="min-h-11" value={form.departmentId} onChange={(e) => setForm({ ...form, departmentId: e.target.value })} required />
-        </Field>
-        <Field label="Designation ID">
-          <Input className="min-h-11" value={form.designationId} onChange={(e) => setForm({ ...form, designationId: e.target.value })} />
+        <MasterPick
+          entity="departments"
+          label="Department"
+          value={form.departmentId}
+          onChange={(departmentId) => setForm({ ...form, departmentId })}
+          required
+        />
+        <Field label="Designation">
+          <Select value={form.designationId || undefined} onValueChange={(designationId) => setForm({ ...form, designationId })}>
+            <SelectTrigger className="min-h-11 w-full">
+              <SelectValue placeholder="Optional" />
+            </SelectTrigger>
+            <SelectContent>
+              {designations.map((row) => (
+                <SelectItem key={row.id} value={row.id}>
+                  {String(row.code && row.name ? `${row.code} — ${row.name}` : row.name || row.code || row.id)}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </Field>
         <Field label="Headcount">
           <Input className="min-h-11" type="number" min={1} value={form.headcount} onChange={(e) => setForm({ ...form, headcount: e.target.value })} />
