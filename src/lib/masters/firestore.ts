@@ -1,4 +1,5 @@
 import { env } from "@/lib/env";
+import { demoRecord, isDemoDataEnabled, mergeDemoRecords } from "@/lib/demo/overlay";
 
 type FirestoreValue =
   | { stringValue: string }
@@ -142,7 +143,10 @@ export async function readMasterDocument(
       _updateTime: doc.updateTime,
     } as MasterRecord;
   } catch (error) {
-    if (error instanceof Error && error.name === "NotFoundError") return null;
+    if (error instanceof Error && error.name === "NotFoundError") return demoRecord(collection, id);
+    if (error instanceof Error && error.name !== "ForbiddenError" && isDemoDataEnabled()) {
+      return demoRecord(collection, id);
+    }
     throw error;
   }
 }
@@ -301,7 +305,8 @@ export async function queryMasterDocuments(
       /permission|insufficient|PERMISSION_DENIED/i.test(message || "")
         ? "ForbiddenError"
         : "FirestoreError";
-    throw error;
+    if (error.name === "ForbiddenError" || !isDemoDataEnabled()) throw error;
+    return mergeDemoRecords(collectionName, [], options);
   }
 
   const rows = Array.isArray(payload) ? payload : [];
@@ -312,10 +317,11 @@ export async function queryMasterDocuments(
       /permission|insufficient|PERMISSION_DENIED/i.test(queryError)
         ? "ForbiddenError"
         : "FirestoreError";
-    throw error;
+    if (error.name === "ForbiddenError" || !isDemoDataEnabled()) throw error;
+    return mergeDemoRecords(collectionName, [], options);
   }
 
-  return rows
+  const live = rows
     .filter((row) => row.document?.name)
     .map((row) => {
       const id = row.document?.name?.split("/").pop() || "";
@@ -325,4 +331,5 @@ export async function queryMasterDocuments(
         _updateTime: row.document?.updateTime,
       } as MasterRecord;
     });
+  return mergeDemoRecords(collectionName, live, options);
 }

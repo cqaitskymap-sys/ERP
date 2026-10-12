@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { SalesList } from "@/components/sales/sales-list";
 import { SalesWorkflowActions } from "@/components/sales/workflow-actions";
@@ -202,7 +202,7 @@ function DetailShell({
   const [extra, setExtra] = useState<Record<string, unknown>>({});
   const [error, setError] = useState<string | null>(null);
 
-  function load() {
+  const load = useCallback(() => {
     void getSales(resource, id)
       .then((result) => {
         setRecord(result.record as Row);
@@ -210,12 +210,12 @@ function DetailShell({
         setError(null);
       })
       .catch((err) => setError(publicMasterError(err)));
-  }
+  }, [resource, id]);
 
   useEffect(() => {
     const timer = window.setTimeout(load, 0);
     return () => window.clearTimeout(timer);
-  }, [resource, id]);
+  }, [load]);
 
   if (!record && !error) return <LoadingState />;
   if (error || !record) {

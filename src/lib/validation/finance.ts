@@ -7,13 +7,10 @@ import {
   BANK_RECON_STATUSES,
   BUDGET_STATUSES,
   CREDIT_NOTE_STATUSES,
-  CUSTOMER_INVOICE_STATUSES,
   EXPENSE_STATUSES,
   JOURNAL_STATUSES,
   NORMAL_BALANCES,
-  PAYMENT_STATUSES,
   PERIOD_STATUSES,
-  SUPPLIER_INVOICE_STATUSES,
 } from "@/types/finance";
 
 const optionalText = z.string().trim().optional().or(z.literal(""));

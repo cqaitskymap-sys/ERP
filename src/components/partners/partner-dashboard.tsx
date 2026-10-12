@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { getPartnerDashboard } from "@/lib/partners/client";
 import { publicMasterError } from "@/lib/masters/errors";
 import { EXPIRY_WINDOWS_DAYS } from "@/lib/partners/expiry";
+import { BarBlock, ChartCard, PieBlock } from "@/components/charts/dashboard-charts";
 
 export function PartnerDashboard() {
   return (
@@ -88,6 +89,31 @@ function DashboardInner() {
           <Metric label="Suspended vendors" value={stats.vendors.suspended} />
         </div>
       </section>
+      <div className="mt-6 grid gap-4 lg:grid-cols-2">
+        <ChartCard title="Customers">
+          <PieBlock
+            data={[
+              { name: "Active", value: stats.customers.active },
+              { name: "Pending qualification", value: stats.customers.pendingQualification },
+              { name: "Expiring", value: stats.customers.expiringQualification },
+              { name: "High risk", value: stats.customers.highRisk },
+            ]}
+            empty="No customers yet."
+          />
+        </ChartCard>
+        <ChartCard title="Vendors">
+          <BarBlock
+            data={[
+              { name: "Active", value: stats.vendors.active },
+              { name: "Pending qualification", value: stats.vendors.pendingQualification },
+              { name: "Expiring", value: stats.vendors.expiringQualification },
+              { name: "High risk", value: stats.vendors.highRisk },
+              { name: "Suspended", value: stats.vendors.suspended },
+            ]}
+            empty="No vendors yet."
+          />
+        </ChartCard>
+      </div>
     </div>
   );
 }

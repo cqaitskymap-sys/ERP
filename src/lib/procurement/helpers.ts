@@ -12,7 +12,7 @@ import { writeNotification, type NotificationInput } from "@/lib/notifications/s
 import { PROCUREMENT_COLLECTIONS } from "@/lib/procurement/collections";
 import { PROCUREMENT_NUMBER_SERIES } from "@/lib/procurement/config";
 import { parseForm } from "@/lib/validation/schemas";
-import { canAccess, hasAnyPermission, hasPermission, hasRole } from "@/lib/permissions/permission-service";
+import { canAccess, hasAnyPermission, hasRole } from "@/lib/permissions/permission-service";
 import type { SessionPayload } from "@/types/auth";
 import type { Permission } from "@/types/permissions";
 import type { z } from "zod";

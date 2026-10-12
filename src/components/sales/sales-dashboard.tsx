@@ -1,19 +1,16 @@
 "use client";
 
-import { useEffect, useState, type ReactNode } from "react";
+import { BarBlock, ChartCard, PieBlock, toChart } from "@/components/charts/dashboard-charts";
+import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Bar, BarChart, CartesianGrid, Cell, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { RequirePermission } from "@/components/auth/require-permission";
 import { PageHeader } from "@/components/layout/page-header";
 import { LoadingState } from "@/components/feedback/loading-state";
 import { EmptyState } from "@/components/feedback/empty-state";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { getSalesDashboard } from "@/lib/sales/client";
 import { publicMasterError } from "@/lib/masters/errors";
-
-const COLORS = ["#0f766e", "#0369a1", "#b45309", "#be123c", "#334155", "#0e7490"];
 
 export function SalesDashboard() {
   return (
@@ -35,7 +32,7 @@ function DashboardInner() {
         .catch((err) => setError(publicMasterError(err)));
     }, 0);
     return () => window.clearTimeout(timer);
-  }, [filters.from, filters.to, filters.customerId, filters.status]);
+  }, [filters]);
 
   if (!stats && !error) return <LoadingState variant="page" />;
   if (error || !stats) {
@@ -105,55 +102,14 @@ function DashboardInner() {
 
 function Metric({ label, value, href }: { label: string; value?: number; href: string }) {
   return (
-    <Link href={href} className="rounded-xl border bg-card p-4 transition-colors hover:bg-muted/40">
+    <Link
+      href={href}
+      className="group rounded-2xl border border-border/80 bg-card p-4 shadow-sm transition-[transform,border-color,box-shadow] hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-[0_16px_32px_-24px_color-mix(in_oklch,var(--primary)_70%,transparent)]"
+    >
       <p className="text-xs text-muted-foreground">{label}</p>
-      <p className="mt-2 text-2xl font-semibold tabular-nums">{Number(value || 0).toLocaleString()}</p>
+      <p className="mt-2 font-heading text-2xl font-semibold tracking-tight tabular-nums">
+        {Number(value || 0).toLocaleString("en-IN")}
+      </p>
     </Link>
-  );
-}
-
-function ChartCard({ title, children }: { title: string; children: ReactNode }) {
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-base">{title}</CardTitle>
-      </CardHeader>
-      <CardContent className="h-64">{children}</CardContent>
-    </Card>
-  );
-}
-
-function toChart(map?: Record<string, number>) {
-  return Object.entries(map || {}).map(([name, value]) => ({ name: name || "—", value: Number(value || 0) }));
-}
-
-function BarBlock({ data }: { data: Array<{ name: string; value: number }> }) {
-  if (!data.length) return <p className="text-sm text-muted-foreground">No posted sales data yet.</p>;
-  return (
-    <ResponsiveContainer width="100%" height="100%">
-      <BarChart data={data}>
-        <CartesianGrid strokeDasharray="3 3" />
-        <XAxis dataKey="name" hide={data.length > 8} />
-        <YAxis />
-        <Tooltip />
-        <Bar dataKey="value" fill="#0f766e" />
-      </BarChart>
-    </ResponsiveContainer>
-  );
-}
-
-function PieBlock({ data }: { data: Array<{ name: string; value: number }> }) {
-  if (!data.length) return <p className="text-sm text-muted-foreground">No order status data yet.</p>;
-  return (
-    <ResponsiveContainer width="100%" height="100%">
-      <PieChart>
-        <Pie data={data} dataKey="value" nameKey="name" outerRadius={90} label>
-          {data.map((entry, index) => (
-            <Cell key={entry.name} fill={COLORS[index % COLORS.length]} />
-          ))}
-        </Pie>
-        <Tooltip />
-      </PieChart>
-    </ResponsiveContainer>
   );
 }

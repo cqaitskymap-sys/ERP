@@ -21,6 +21,7 @@ import {
   MapPinned,
   Network,
   Package,
+  Palette,
   PackageMinus,
   PackagePlus,
   PackageSearch,
@@ -1476,6 +1477,16 @@ export const navigation: NavSection[] = [
       { id: "dms-reports", label: "Reports", href: "/dms/reports", icon: FileSpreadsheet, permission: "dmsReports:read", status: "ready", description: "Export live document-control registers." },
       { id: "dms-audit", label: "Audit", href: "/dms/audit", icon: History, permission: "dmsAudit:read", status: "ready", description: "Document control actions copied into the audit trail." },
       { id: "dms-settings", label: "Settings", href: "/dms/settings", icon: SlidersHorizontal, permission: "dmsNumbering:update", status: "ready", description: "Segregation of duties, signatures, and retention." },
+    ],
+  },
+  {
+    id: "artwork-ops",
+    label: "Artwork approval",
+    items: [
+      { id: "artwork-dashboard", label: "Dashboard", href: "/artwork", icon: LayoutDashboard, permission: "artwork:read", status: "ready", description: "Artwork jobs in packaging, QA, regulatory, and customer review." },
+      { id: "artwork-requests", label: "Artwork jobs", href: "/artwork/requests", icon: Palette, permission: "artwork:read", status: "ready", description: "Carton, label, foil, leaflet, and shipper jobs." },
+      { id: "artwork-approvals", label: "Approval lane", href: "/artwork/approvals", icon: BadgeCheck, permission: "artwork:read", status: "ready", description: "Who has signed, and who the job is waiting on." },
+      { id: "artwork-versions", label: "Versions", href: "/artwork/versions", icon: History, permission: "artwork:read", status: "ready", description: "Version history for each component." },
     ],
   },
   {

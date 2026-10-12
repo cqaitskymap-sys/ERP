@@ -6,7 +6,7 @@ import {
   useContext,
   useEffect,
   useMemo,
-  useState,
+  useSyncExternalStore,
   type ReactNode,
 } from "react";
 import { usePathname, useRouter } from "next/navigation";
@@ -31,50 +31,54 @@ const ModuleWorkspaceContext = createContext<ModuleWorkspaceContextValue | null>
   null
 );
 
+const listeners = new Set<() => void>();
+
+function subscribe(listener: () => void) {
+  listeners.add(listener);
+  window.addEventListener("storage", listener);
+  return () => {
+    listeners.delete(listener);
+    window.removeEventListener("storage", listener);
+  };
+}
+
+function storedModuleId() {
+  return readStoredWorkspaceModuleId() ?? "";
+}
+
+function persistModuleId(id: string | null) {
+  if ((readStoredWorkspaceModuleId() ?? null) === id) return;
+  writeStoredWorkspaceModuleId(id);
+  listeners.forEach((listener) => listener());
+}
+
 export function ModuleWorkspaceProvider({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
-  const [activeModuleId, setActiveModuleId] = useState<string | null>(null);
-  const [hydrated, setHydrated] = useState(false);
+  const storedId = useSyncExternalStore(subscribe, storedModuleId, () => "");
+  const inferredId = pathname === "/" ? null : inferWorkspaceModuleId(pathname);
+  const activeModuleId = pathname === "/" ? null : inferredId ?? (storedId || null);
 
   useEffect(() => {
-    setActiveModuleId(readStoredWorkspaceModuleId());
-    setHydrated(true);
-  }, []);
-
-  useEffect(() => {
-    if (!hydrated) return;
-
     if (pathname === "/") {
-      setActiveModuleId(null);
-      writeStoredWorkspaceModuleId(null);
+      persistModuleId(null);
       return;
     }
-
-    const inferred = inferWorkspaceModuleId(pathname);
-    if (!inferred) return;
-
-    setActiveModuleId((current) => {
-      if (current === inferred) return current;
-      writeStoredWorkspaceModuleId(inferred);
-      return inferred;
-    });
-  }, [hydrated, pathname]);
+    if (inferredId) persistModuleId(inferredId);
+  }, [inferredId, pathname]);
 
   const selectModule = useCallback(
     (moduleId: string) => {
       const selected = getWorkspaceModule(moduleId);
       if (!selected) return;
-      setActiveModuleId(selected.id);
-      writeStoredWorkspaceModuleId(selected.id);
+      persistModuleId(selected.id);
       router.push(selected.href);
     },
     [router]
   );
 
   const clearModule = useCallback(() => {
-    setActiveModuleId(null);
-    writeStoredWorkspaceModuleId(null);
+    persistModuleId(null);
   }, []);
 
   const openModulePicker = useCallback(() => {

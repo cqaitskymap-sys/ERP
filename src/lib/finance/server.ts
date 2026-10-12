@@ -1,12 +1,10 @@
 import { searchIndex } from "@/lib/inventory/keys";
 import { INVENTORY_COLLECTIONS } from "@/lib/inventory/collections";
 import { PROCUREMENT_COLLECTIONS } from "@/lib/procurement/collections";
-import { SALES_COLLECTIONS } from "@/lib/sales/collections";
-import { queryMasterDocuments, readMasterDocument, type AtomicWrite } from "@/lib/masters/firestore";
+import { queryMasterDocuments, type AtomicWrite } from "@/lib/masters/firestore";
 import {
   applyApprovalAction,
   createFinanceApprovalWrites,
-  FINANCE_APPROVALS_COLLECTION,
   loadApprovals,
   loadWorkflowConfig,
   type FinanceWorkflowModule,
@@ -20,15 +18,12 @@ import {
 import {
   actorStamp,
   auditFinance,
-  canSeeFinanceSensitive,
   commitWrites,
   ensurePermission,
   fail,
   idempotencyWrite,
   issueFinanceNumber,
   listByField,
-  maskBankReference,
-  notifyFinance,
   parseOrFail,
   requireRecord,
   reuseIdempotent,
@@ -36,49 +31,21 @@ import {
   workflowFail,
   writeOf,
 } from "@/lib/finance/helpers";
-import {
-  calculateAgingBuckets,
-  calculateTrialBalance,
-  generateBalanceSheet,
-  generateProfitAndLoss,
-  validateJournalEntry,
-} from "@/lib/finance/ledger";
+import { validateJournalEntry } from "@/lib/finance/ledger";
 import { detectDuplicateSupplierInvoice, matchSupplierInvoiceLines } from "@/lib/finance/matching";
-import { addMoney, calculateDocumentTotals, calculateLineTotal, money, subtractMoney } from "@/lib/finance/money";
-import { periodClosingChecklist, validateAccountingPeriod } from "@/lib/finance/periods";
-import { calculateTaxBreakdown } from "@/lib/finance/tax";
+import { calculateDocumentTotals, calculateLineTotal, money } from "@/lib/finance/money";
+import { validateAccountingPeriod } from "@/lib/finance/periods";
 import {
-  BANK_RECON_TRANSITIONS,
-  CREDIT_NOTE_TRANSITIONS,
-  CUSTOMER_INVOICE_TRANSITIONS,
   JOURNAL_TRANSITIONS,
-  PAYMENT_TRANSITIONS,
-  PERIOD_TRANSITIONS,
   SUPPLIER_INVOICE_TRANSITIONS,
   canTransition,
 } from "@/lib/finance/status";
 import {
-  bankAccountSchema,
-  bankStatementImportSchema,
-  budgetSchema,
   chartOfAccountSchema,
-  creditNoteSchema,
-  customerInvoiceSchema,
-  customerReceiptSchema,
-  debitNoteSchema,
-  expenseClaimSchema,
-  financePeriodSchema,
-  financeSettingsSchema,
-  fixedAssetSchema,
   journalEntrySchema,
-  paymentConfirmationSchema,
-  paymentProposalSchema,
   supplierInvoiceSchema,
-  taxCodeSchema,
-  costCenterSchema,
 } from "@/lib/validation/finance";
 import type { SessionPayload } from "@/types/auth";
-import type { Permission } from "@/types/permissions";
 
 function assertTransition(map: Record<string, string[]>, current: string, next: string, action: string) {
   if (!canTransition(map, current, next)) workflowFail(current, action);

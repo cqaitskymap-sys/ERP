@@ -518,6 +518,23 @@ service cloud.firestore {
       return hasRole('super_admin') || hasRole('admin') || hasRole('regulatory');
     }
 
+    function isArtworkCollection(name) {
+      return name in [
+        'artworkRequests', 'artworkApprovals', 'artworkVersions'
+      ];
+    }
+
+    function canReadArtwork() {
+      return callerActive() && (
+        hasRole('super_admin') || hasRole('admin') || hasRole('regulatory')
+        || hasRole('qa') || hasRole('management') || hasRole('department_head')
+      );
+    }
+
+    function canWriteArtwork() {
+      return hasRole('super_admin') || hasRole('admin') || hasRole('regulatory') || hasRole('qa');
+    }
+
     function isImmutableRaCollection(name) {
       return name in ['regulatoryIdempotency'];
     }
@@ -717,6 +734,7 @@ service cloud.firestore {
         || (isQcCollection(collection) && canReadQc())
         || (isQaCollection(collection) && canReadQa())
         || (isRaCollection(collection) && canReadRa())
+        || (isArtworkCollection(collection) && canReadArtwork())
         || (isPvCollection(collection) && canReadPv())
         || (isComplaintCollection(collection) && canReadComplaints())
         || (isSupplierQualityCollection(collection) && canReadSq())
@@ -765,6 +783,9 @@ service cloud.firestore {
         && request.resource.data.createdBy == request.auth.uid;
       allow create: if isRaCollection(collection)
         && canWriteRa()
+        && request.resource.data.createdBy == request.auth.uid;
+      allow create: if isArtworkCollection(collection)
+        && canWriteArtwork()
         && request.resource.data.createdBy == request.auth.uid;
       allow create: if isQaCollection(collection)
         && canWriteQa()
@@ -840,6 +861,9 @@ service cloud.firestore {
       allow update: if isRaCollection(collection)
         && canWriteRa()
         && !isImmutableRaCollection(collection)
+        && auditFieldsLocked();
+      allow update: if isArtworkCollection(collection)
+        && canWriteArtwork()
         && auditFieldsLocked();
       allow update: if isQaCollection(collection)
         && canWriteQa()

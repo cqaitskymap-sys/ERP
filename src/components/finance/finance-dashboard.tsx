@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { getFinanceDashboard } from "@/lib/finance/client";
 import { publicMasterError } from "@/lib/masters/errors";
+import { BarBlock, ChartCard, FlowChart, PieBlock, toChart } from "@/components/charts/dashboard-charts";
 
 type Row = Record<string, unknown>;
 
@@ -33,7 +34,7 @@ function DashboardInner() {
         .catch((err) => setError(publicMasterError(err)));
     }, 0);
     return () => window.clearTimeout(timer);
-  }, [filters.from, filters.to, filters.periodId]);
+  }, [filters]);
 
   if (!stats && !error) return <LoadingState variant="page" />;
   if (error || !stats) {
@@ -116,6 +117,32 @@ function DashboardInner() {
       ) : (
         <p className="mb-6 text-sm text-muted-foreground">No KPI aggregates returned yet.</p>
       )}
+      <div className="mb-6 grid gap-4 lg:grid-cols-2">
+        <ChartCard title="Customer aging">
+          <BarBlock data={toChart(customerAging)} empty="No open customer balances." />
+        </ChartCard>
+        <ChartCard title="Supplier aging">
+          <BarBlock data={toChart(supplierAging)} empty="No open supplier balances." />
+        </ChartCard>
+        <ChartCard title="Cash in and out">
+          <FlowChart
+            data={((stats.monthlyCashFlow || []) as Array<{ month?: string; inflow?: number; outflow?: number }>).map((row) => ({
+              name: String(row.month || ""),
+              inflow: Number(row.inflow || 0),
+              outflow: Number(row.outflow || 0),
+            }))}
+          />
+        </ChartCard>
+        <ChartCard title="Revenue and spend">
+          <PieBlock
+            data={[
+              { name: "October revenue", value: Number(kpis.monthlyRevenue || 0) },
+              { name: "October expenses", value: Number(kpis.monthlyExpenses || 0) },
+            ]}
+            empty="No posted profit and loss yet."
+          />
+        </ChartCard>
+      </div>
       <div className="grid gap-4 lg:grid-cols-2">
         <TableCard title="AP / AR aging" rows={aging} columns={["partnerName", "documentNumber", "dueDate", "balance", "bucket"]} />
         <TableCard
@@ -130,7 +157,7 @@ function DashboardInner() {
 
 function Metric({ label, value, href }: { label: string; value?: number | null; href: string }) {
   return (
-    <Link href={href} className="rounded-xl border bg-card p-4 transition-colors hover:bg-muted/40">
+    <Link href={href} className="rounded-2xl border border-border/80 bg-card p-4 shadow-sm transition-[transform,border-color,box-shadow] hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-[0_16px_32px_-24px_color-mix(in_oklch,var(--primary)_70%,transparent)]">
       <p className="text-xs text-muted-foreground">{label}</p>
       <p className="mt-2 text-2xl font-semibold tabular-nums">{Number(value || 0).toLocaleString()}</p>
     </Link>

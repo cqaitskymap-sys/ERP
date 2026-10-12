@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import { RequirePermission } from "@/components/auth/require-permission";
 import { LoadingState } from "@/components/feedback/loading-state";
 import { EmptyState } from "@/components/feedback/empty-state";
@@ -62,11 +63,12 @@ function PrintInner({ id }: { id: string }) {
       <header className="mb-6 border-b pb-4">
         <div className="flex items-start justify-between gap-4">
           <div className="flex items-start gap-3">
-            <img
+            <Image
               src={appConfig.logoSrc}
               alt={`${appConfig.name} logo`}
               width={56}
               height={56}
+              priority
               className="h-14 w-14 rounded-lg border bg-white object-contain p-0.5"
             />
             <div>

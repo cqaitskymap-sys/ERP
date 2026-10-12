@@ -50,7 +50,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
         <TopNav onOpenSidebar={() => setMobileOpen(true)} />
         <main className="min-h-0 flex-1 overflow-y-auto px-4 py-6 lg:px-8">
-          <div className="mx-auto w-full max-w-[1400px]">{children}</div>
+          <div className="w-full">{children}</div>
         </main>
       </div>
     </div>

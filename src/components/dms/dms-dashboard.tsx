@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { getDmsDashboard } from "@/lib/dms/client";
 import { publicMasterError } from "@/lib/masters/errors";
+import { BarBlock, ChartCard, PieBlock } from "@/components/charts/dashboard-charts";
 
 const LINKS: Record<string, string> = {
   controlledDocuments: "/dms/registry",
@@ -89,11 +90,36 @@ function Inner() {
       </div>
       <div className="mb-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         {Object.entries(kpis).map(([key, value]) => (
-          <Link key={key} href={LINKS[key] || "/dms"} className="rounded-xl border bg-card p-4 transition-colors hover:bg-muted/40">
+          <Link key={key} href={LINKS[key] || "/dms"} className="rounded-2xl border border-border/80 bg-card p-4 shadow-sm transition-[transform,border-color,box-shadow] hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-[0_16px_32px_-24px_color-mix(in_oklch,var(--primary)_70%,transparent)]">
             <p className="text-xs text-muted-foreground">{label(key)}</p>
             <p className="mt-2 text-2xl font-semibold tabular-nums">{value == null ? "—" : Number(value).toLocaleString()}</p>
           </Link>
         ))}
+      </div>
+      <div className="mb-6 grid gap-4 lg:grid-cols-2">
+        <ChartCard title="Document lifecycle">
+          <PieBlock
+            data={[
+              { name: "Effective", value: Number(kpis.effectiveDocuments || 0) },
+              { name: "In review", value: Number(kpis.pendingApprovals || 0) },
+              { name: "Draft", value: Number(kpis.draftsAwaitingReview || 0) },
+              { name: "Approved, not effective", value: Number(kpis.approvedNotEffective || 0) },
+              { name: "Superseded", value: Number(kpis.supersededDocuments || 0) },
+            ]}
+            empty="No controlled documents yet."
+          />
+        </ChartCard>
+        <ChartCard title="Reviews and changes">
+          <BarBlock
+            data={[
+              { name: "Reviews due", value: Number(kpis.reviewsDue || 0) },
+              { name: "Reviews overdue", value: Number(kpis.reviewsOverdue || 0) },
+              { name: "External expiring", value: Number(kpis.externalExpiring || 0) },
+              { name: "Changes waiting", value: Number(kpis.changesAwaitingImplementation || 0) },
+            ]}
+            empty="Nothing is due."
+          />
+        </ChartCard>
       </div>
       <div className="space-y-2 rounded-xl border bg-muted/30 p-4 text-sm text-muted-foreground">
         {Object.entries(notes).map(([key, note]) => (

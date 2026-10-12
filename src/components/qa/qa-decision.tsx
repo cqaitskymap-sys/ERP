@@ -332,11 +332,11 @@ function BlockerPanel({ validation }: { validation: { eligible: boolean; blocker
           Release is blocked until the items below are resolved.
         </p>
       )}
-      {validation.blockers.map((item) => (
-        <p key={item} className="rounded-lg border p-3">❌ {item}</p>
+      {validation.blockers.map((item, index) => (
+        <p key={`${item}-${index}`} className="rounded-lg border p-3">❌ {item}</p>
       ))}
-      {validation.warnings.map((item) => (
-        <p key={item} className="rounded-lg border p-3 text-muted-foreground">⚠ {item}</p>
+      {validation.warnings.map((item, index) => (
+        <p key={`${item}-${index}`} className="rounded-lg border p-3 text-muted-foreground">⚠ {item}</p>
       ))}
     </div>
   );

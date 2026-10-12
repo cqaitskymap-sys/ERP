@@ -23,7 +23,7 @@ import { toast } from "@/lib/feedback/toast";
 export function FinanceReportsPage({ defaultType = "general_ledger" }: { defaultType?: string }) {
   return (
     <RequirePermission permission={"financeReports:read" as import("@/types/permissions").Permission}>
-      <Inner defaultType={defaultType} />
+      <Inner key={defaultType} defaultType={defaultType} />
     </RequirePermission>
   );
 }
@@ -36,10 +36,6 @@ function Inner({ defaultType }: { defaultType: string }) {
   const [rows, setRows] = useState<Array<Record<string, unknown>>>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    setType(defaultType);
-  }, [defaultType]);
 
   useEffect(() => {
     const timer = window.setTimeout(() => {

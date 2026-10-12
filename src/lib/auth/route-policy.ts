@@ -113,6 +113,7 @@ export const ROUTE_POLICIES: Array<{ prefix: string; policy: RoutePolicy }> = [
   { prefix: "/modules/audit", policy: { permission: "audit:read" } },
   { prefix: "/modules/admin", policy: { permission: "admin:read" } },
   { prefix: "/modules/maintenance", policy: { permission: "maintenance:read" } },
+  { prefix: "/artwork", policy: { permission: "artwork:read" } },
   { prefix: "/ra/products", policy: { permission: "raProduct:read" } },
   { prefix: "/ra/requirements", policy: { permission: "raProduct:read" } },
   { prefix: "/ra/markets", policy: { permission: "raMarket:read" } },

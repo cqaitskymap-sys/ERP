@@ -11,7 +11,7 @@ import { writeNotification, type NotificationInput } from "@/lib/notifications/s
 import { PV_COLLECTIONS } from "@/lib/pv/collections";
 import { PV_NUMBER_SERIES } from "@/lib/pv/config";
 import { parseForm } from "@/lib/validation/schemas";
-import { canAccess, canAccessAny } from "@/lib/permissions/permission-service";
+import { canAccess } from "@/lib/permissions/permission-service";
 import type { SessionPayload } from "@/types/auth";
 import type { Permission } from "@/types/permissions";
 import type { MinimumInformationResult, PvSignature } from "@/types/pv";

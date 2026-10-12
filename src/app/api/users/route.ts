@@ -69,17 +69,20 @@ export async function POST(request: Request) {
     });
 
     await writeUserProfile(profile, identity.idToken);
-    await writeAuditLog(identity.idToken, {
-      actorId: session.uid,
-      actorEmail: session.email,
-      action: "users.create",
-      module: "users",
-      resource: "user",
-      resourceId: profile.uid,
-      description: `Provisioned ${profile.email} as ${profile.role}.`,
-      severity: "notice",
-      createdAt: new Date().toISOString(),
-    }).catch(() => undefined);
+    const callerToken = request.headers.get("x-firebase-id-token");
+    if (callerToken) {
+      await writeAuditLog(callerToken, {
+        actorId: session.uid,
+        actorEmail: session.email,
+        action: "users.create",
+        module: "users",
+        resource: "user",
+        resourceId: profile.uid,
+        description: `Provisioned ${profile.email} as ${profile.role}.`,
+        severity: "notice",
+        createdAt: new Date().toISOString(),
+      }).catch(() => undefined);
+    }
 
     return NextResponse.json({
       ok: true,

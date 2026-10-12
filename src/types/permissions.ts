@@ -143,6 +143,7 @@ export const PERMISSION_MODULES = [
   "raCommitment",
   "raCommunication",
   "raArtwork",
+  "artwork",
   "raRegulatoryChange",
   "raReports",
   "pv",

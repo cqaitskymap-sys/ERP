@@ -9,7 +9,7 @@ import {
 import { ensureDocumentNumberSeries, nextDocumentNumber } from "@/lib/masters/numbering";
 import { writeNotification, type NotificationInput } from "@/lib/notifications/service";
 import { parseForm } from "@/lib/validation/schemas";
-import { canAccess, canAccessAny } from "@/lib/permissions/permission-service";
+import { canAccess } from "@/lib/permissions/permission-service";
 import { LOGISTICS_COLLECTIONS } from "@/lib/logistics/collections";
 import { LOGISTICS_NUMBER_SERIES } from "@/lib/logistics/config";
 import type { SessionPayload } from "@/types/auth";

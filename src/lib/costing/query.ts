@@ -203,6 +203,9 @@ export async function loadCostingDashboard(idToken: string, query: CostingListQu
       pendingCostingApprovals: pendingApprovals.length + approvals.length,
       incompleteCostRecords: incomplete.length,
       awaitingFinanceReconciliation: awaitingFinance.length,
+      openVarianceInvestigations: investigations.filter(
+        (row) => !["closed", "cancelled", "resolved"].includes(text(row.status))
+      ).length,
       batchCount: filtered.length,
     },
     highestVarianceProducts: highVariance,

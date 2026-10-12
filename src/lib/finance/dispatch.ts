@@ -1,6 +1,6 @@
 import { FINANCE_COLLECTIONS } from "@/lib/finance/collections";
 import { isFinanceResource, type FinanceResource } from "@/lib/finance/http";
-import { canSeeFinanceSensitive, listByField, maskBankReference, text } from "@/lib/finance/helpers";
+import { canSeeFinanceSensitive, listByField, maskBankReference } from "@/lib/finance/helpers";
 import { loadApprovals } from "@/lib/finance/approvals";
 import {
   approveJournalEntry,

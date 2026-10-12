@@ -1,18 +1,15 @@
 "use client";
 
-import { useEffect, useState, type ReactNode } from "react";
+import { BarBlock, ChartCard, PieBlock, toChart } from "@/components/charts/dashboard-charts";
+import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Bar, BarChart, CartesianGrid, Cell, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { RequirePermission } from "@/components/auth/require-permission";
 import { PageHeader } from "@/components/layout/page-header";
 import { LoadingState } from "@/components/feedback/loading-state";
 import { EmptyState } from "@/components/feedback/empty-state";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { getSqDashboard } from "@/lib/supplier-quality/client";
 import { publicMasterError } from "@/lib/masters/errors";
-
-const COLORS = ["#0f766e", "#0369a1", "#b45309", "#be123c", "#6d28d9", "#334155"];
 
 export function SqDashboard() {
   return (
@@ -82,40 +79,9 @@ function Inner() {
 
 function Metric({ label, value, href }: { label: string; value: number; href: string }) {
   return (
-    <Link href={href} className="rounded-xl border bg-card p-4 transition hover:border-primary/40">
+    <Link href={href} className="rounded-2xl border border-border/80 bg-card p-4 shadow-sm transition-[transform,border-color,box-shadow] hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-[0_16px_32px_-24px_color-mix(in_oklch,var(--primary)_70%,transparent)]">
       <p className="text-sm text-muted-foreground">{label}</p>
       <p className="mt-1 text-2xl font-semibold">{Number(value || 0)}</p>
     </Link>
-  );
-}
-
-function ChartCard({ title, children }: { title: string; children: ReactNode }) {
-  return <Card><CardHeader><CardTitle className="text-base">{title}</CardTitle></CardHeader><CardContent className="h-64">{children}</CardContent></Card>;
-}
-
-function toChart(map: Record<string, number> | undefined) {
-  return Object.entries(map || {}).map(([name, value]) => ({ name, value }));
-}
-
-function BarBlock({ data }: { data: Array<{ name: string; value: number }> }) {
-  if (!data.length) return <p className="text-sm text-muted-foreground">No Firestore data yet.</p>;
-  return (
-    <ResponsiveContainer width="100%" height="100%">
-      <BarChart data={data}><CartesianGrid strokeDasharray="3 3" /><XAxis dataKey="name" hide={data.length > 8} /><YAxis allowDecimals={false} /><Tooltip /><Bar dataKey="value" fill="#0f766e" /></BarChart>
-    </ResponsiveContainer>
-  );
-}
-
-function PieBlock({ data, empty }: { data: Array<{ name: string; value: number }>; empty: string }) {
-  if (!data.length) return <p className="text-sm text-muted-foreground">{empty}</p>;
-  return (
-    <ResponsiveContainer width="100%" height="100%">
-      <PieChart>
-        <Pie data={data} dataKey="value" nameKey="name" outerRadius={80}>
-          {data.map((entry, index) => <Cell key={entry.name} fill={COLORS[index % COLORS.length]} />)}
-        </Pie>
-        <Tooltip />
-      </PieChart>
-    </ResponsiveContainer>
   );
 }

@@ -127,8 +127,8 @@ function Inner({ id }: { id: string }) {
               <p className="mb-2 text-sm font-semibold">Production readiness</p>
               <StatusBadge label={readiness.ready ? "Ready" : "Blocked"} tone={readiness.ready ? "success" : "critical"} />
               <ul className="mt-3 list-disc space-y-1 pl-5 text-sm">
-                {readiness.blockers.map((item) => <li key={item}>{item}</li>)}
-                {readiness.warnings.map((item) => <li key={item} className="text-muted-foreground">{item}</li>)}
+                {readiness.blockers.map((item, index) => <li key={`${item}-${index}`}>{item}</li>)}
+                {readiness.warnings.map((item, index) => <li key={`${item}-${index}`} className="text-muted-foreground">{item}</li>)}
               </ul>
             </div>
           ) : null}

@@ -11,7 +11,7 @@ import { writeNotification, type NotificationInput } from "@/lib/notifications/s
 import { RA_COLLECTIONS } from "@/lib/ra/collections";
 import { RA_NUMBER_SERIES } from "@/lib/ra/config";
 import { parseForm } from "@/lib/validation/schemas";
-import { canAccess, canAccessAny } from "@/lib/permissions/permission-service";
+import { canAccess } from "@/lib/permissions/permission-service";
 import type { SessionPayload } from "@/types/auth";
 import type { Permission } from "@/types/permissions";
 import type { RaSignature } from "@/types/ra";

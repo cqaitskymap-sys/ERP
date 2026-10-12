@@ -19,7 +19,6 @@ import {
   fail,
   idempotencyWrite,
   issueFinanceNumber,
-  listByField,
   maskBankReference,
   notifyFinance,
   parseOrFail,

@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { getEngineeringDashboard } from "@/lib/engineering/client";
 import { publicMasterError } from "@/lib/masters/errors";
+import { BarBlock, ChartCard, PieBlock } from "@/components/charts/dashboard-charts";
 
 type Stats = Record<string, unknown>;
 
@@ -96,6 +97,26 @@ function DashboardInner() {
       ) : (
         <p className="mb-6 text-sm text-muted-foreground">No KPI aggregates returned yet.</p>
       )}
+      <div className="mb-6 grid gap-4 lg:grid-cols-2">
+        <ChartCard title="Equipment on the register">
+          <PieBlock
+            data={equipmentSlices(kpis)}
+            empty="No equipment registered."
+          />
+        </ChartCard>
+        <ChartCard title="Work waiting">
+          <BarBlock
+            data={[
+              { name: "Preventive due", value: Number(kpis.preventiveMaintenanceDue || 0) },
+              { name: "Overdue maintenance", value: Number(kpis.overdueMaintenanceTasks || 0) },
+              { name: "Open breakdowns", value: Number(kpis.openBreakdowns || 0) },
+              { name: "Calibration due", value: Number(kpis.calibrationDueSoon || 0) },
+              { name: "Open work orders", value: Number(kpis.openMaintenanceWorkOrders || 0) },
+            ]}
+            empty="No open maintenance work."
+          />
+        </ChartCard>
+      </div>
       {stats.notes ? (
         <div className="rounded-xl border bg-muted/30 p-4 text-sm text-muted-foreground">
           {Object.entries(stats.notes as Record<string, string>).map(([key, note]) => (
@@ -111,11 +132,25 @@ function DashboardInner() {
 
 function Metric({ label, value, href }: { label: string; value?: number | null; href: string }) {
   return (
-    <Link href={href} className="rounded-xl border bg-card p-4 transition-colors hover:bg-muted/40">
+    <Link href={href} className="rounded-2xl border border-border/80 bg-card p-4 shadow-sm transition-[transform,border-color,box-shadow] hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-[0_16px_32px_-24px_color-mix(in_oklch,var(--primary)_70%,transparent)]">
       <p className="text-xs text-muted-foreground">{label}</p>
       <p className="mt-2 text-2xl font-semibold tabular-nums">{Number(value || 0).toLocaleString()}</p>
     </Link>
   );
+}
+
+function equipmentSlices(kpis: Record<string, number | null>) {
+  const inService = Number(kpis.equipmentInService || 0);
+  const under = Number(kpis.equipmentUnderMaintenance || 0);
+  const unavailable = Number(kpis.equipmentUnavailable || 0);
+  if (inService + under + unavailable > 0) {
+    return [
+      { name: "In service", value: inService },
+      { name: "Under maintenance", value: under },
+      { name: "Unavailable", value: unavailable },
+    ];
+  }
+  return [{ name: "On the register", value: Number(kpis.totalRegisteredEquipment || 0) }];
 }
 
 function humanizeKey(key: string) {

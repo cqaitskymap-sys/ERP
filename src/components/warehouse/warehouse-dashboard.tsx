@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useState, type ReactNode } from "react";
+import { BarBlock, ChartCard, PieBlock, toChart } from "@/components/charts/dashboard-charts";
+import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Bar, BarChart, CartesianGrid, Cell, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { RequirePermission } from "@/components/auth/require-permission";
 import { PageHeader } from "@/components/layout/page-header";
 import { LoadingState } from "@/components/feedback/loading-state";
@@ -11,10 +11,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { getLowStock, getWarehouseDashboard } from "@/lib/inventory/client";
 import { getLogisticsDashboard } from "@/lib/logistics/client";
-import { labelFor, inventoryItemTypeOptions, qualityStatusOptions } from "@/lib/inventory/catalog";
+import { inventoryItemTypeOptions, qualityStatusOptions } from "@/lib/inventory/catalog";
 import { publicMasterError } from "@/lib/masters/errors";
-
-const COLORS = ["#0f766e", "#0369a1", "#b45309", "#be123c", "#6d28d9", "#334155"];
 
 export function WarehouseDashboard() {
   return (
@@ -150,58 +148,5 @@ function Metric({ label, value, compact }: { label: string; value?: number; comp
         <p className={compact ? "text-xl font-semibold" : "text-2xl font-semibold"}>{Number(value || 0).toLocaleString()}</p>
       </CardContent>
     </Card>
-  );
-}
-
-function ChartCard({ title, children }: { title: string; children: ReactNode }) {
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle>{title}</CardTitle>
-      </CardHeader>
-      <CardContent className="h-64">{children}</CardContent>
-    </Card>
-  );
-}
-
-function toChart(
-  source: Record<string, number> | Array<{ type: string; count: number }> | undefined,
-  options?: Array<{ label: string; value: string }>
-) {
-  if (!source || Array.isArray(source)) return [];
-  return Object.entries(source).map(([name, value]) => ({
-    name: options ? labelFor(options, name) : name || "Unassigned",
-    value,
-  }));
-}
-
-function BarBlock({ data }: { data: Array<{ name: string; value: number }> }) {
-  if (!data.length) return <p className="text-sm text-muted-foreground">No posted stock yet.</p>;
-  return (
-    <ResponsiveContainer width="100%" height="100%">
-      <BarChart data={data}>
-        <CartesianGrid strokeDasharray="3 3" />
-        <XAxis dataKey="name" tick={{ fontSize: 11 }} />
-        <YAxis tick={{ fontSize: 11 }} />
-        <Tooltip />
-        <Bar dataKey="value" fill="#0f766e" radius={[6, 6, 0, 0]} />
-      </BarChart>
-    </ResponsiveContainer>
-  );
-}
-
-function PieBlock({ data }: { data: Array<{ name: string; value: number }> }) {
-  if (!data.length) return <p className="text-sm text-muted-foreground">No posted stock yet.</p>;
-  return (
-    <ResponsiveContainer width="100%" height="100%">
-      <PieChart>
-        <Pie data={data} dataKey="value" nameKey="name" innerRadius={50} outerRadius={80}>
-          {data.map((entry, index) => (
-            <Cell key={entry.name} fill={COLORS[index % COLORS.length]} />
-          ))}
-        </Pie>
-        <Tooltip />
-      </PieChart>
-    </ResponsiveContainer>
   );
 }

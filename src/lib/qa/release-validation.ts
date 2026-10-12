@@ -21,15 +21,8 @@ export function validateBatchForRelease(input: {
   if (!["completed", "qc_pending", "qa_pending", "held"].includes(moStatus) && text(order.qcStatus) !== "completed") {
     blockers.push("Manufacturing is not complete.");
   }
-  if (!["qc_pending", "qa_pending", "held"].includes(moStatus) && !["completed", "qa_pending"].includes(text(order.qcStatus))) {
-    if (!["completed", "reviewed", "closed"].includes(text(input.bmr?.status))) {
-      blockers.push("BMR is incomplete.");
-    }
-  }
-  if (input.bmr && !["completed", "reviewed", "closed"].includes(text(input.bmr.status))) {
-    blockers.push("BMR is incomplete.");
-  }
-  if (!input.bmr) blockers.push("BMR is incomplete.");
+  const bmrComplete = ["completed", "reviewed", "closed"].includes(text(input.bmr?.status));
+  if (!input.bmr || !bmrComplete) blockers.push("BMR is incomplete.");
 
   const recons = input.reconciliations || [];
   if (!recons.length || recons.some((row) => !["reconciled", "completed"].includes(text(row.status)))) {
@@ -79,5 +72,7 @@ export function validateBatchForRelease(input: {
   if (!(input.coas || []).length) blockers.push("COA is unavailable.");
   else if (!approvedCoa.length) blockers.push("COA is unavailable.");
 
-  return { eligible: blockers.length === 0, blockers, warnings };
+  const uniqueBlockers = [...new Set(blockers)];
+  const uniqueWarnings = [...new Set(warnings)];
+  return { eligible: uniqueBlockers.length === 0, blockers: uniqueBlockers, warnings: uniqueWarnings };
 }

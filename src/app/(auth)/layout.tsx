@@ -1,5 +1,4 @@
 import { BrandMark } from "@/components/layout/brand-mark";
-import { appConfig } from "@/lib/config/app";
 
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -10,29 +9,28 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
           <BrandMark inverted size="lg" />
           <div className="max-w-lg">
             <p className="text-xs tracking-[0.2em] text-teal-200/80 uppercase">
-              {appConfig.companyName} manufacturing operations
+              Bhiwadi · contract manufacturing
             </p>
             <h1 className="mt-4 font-heading text-4xl leading-tight font-semibold">
-              A controlled workspace for GMP-aligned plant operations.
+              From the purchase order to the released batch, on one floor.
             </h1>
             <p className="mt-4 text-sm leading-6 text-white/65">
-              {appConfig.name} is the operating system for third-party
-              pharmaceutical manufacturing — quality, production, warehouse, and
-              compliance on one audited platform.
+              Commercial orders, dispensing, QC, QA release, dispatch, and the
+              books — one record for the Bhiwadi site.
             </p>
           </div>
           <div className="grid grid-cols-3 gap-4 text-sm">
             <div className="rounded-xl border border-white/10 bg-white/5 p-4">
-              <p className="text-white/45">Traceability</p>
-              <p className="mt-1 font-medium">Audit-ready</p>
+              <p className="text-white/45">Site</p>
+              <p className="mt-1 font-medium">WHO-GMP</p>
             </div>
             <div className="rounded-xl border border-white/10 bg-white/5 p-4">
-              <p className="text-white/45">Access</p>
-              <p className="mt-1 font-medium">Role-based</p>
+              <p className="text-white/45">This month</p>
+              <p className="mt-1 font-medium">₹48.5 L</p>
             </div>
             <div className="rounded-xl border border-white/10 bg-white/5 p-4">
-              <p className="text-white/45">Records</p>
-              <p className="mt-1 font-medium">Immutable log</p>
+              <p className="text-white/45">Release</p>
+              <p className="mt-1 font-medium">Batch to COA</p>
             </div>
           </div>
         </div>

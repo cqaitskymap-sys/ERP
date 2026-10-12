@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { getCostingDashboard } from "@/lib/costing/client";
 import { publicMasterError } from "@/lib/masters/errors";
+import { BarBlock, ChartCard, PieBlock } from "@/components/charts/dashboard-charts";
 
 type Row = Record<string, unknown>;
 
@@ -105,6 +106,30 @@ function DashboardInner() {
       ) : (
         <p className="mb-6 text-sm text-muted-foreground">No KPI aggregates returned for the selected filters.</p>
       )}
+      <div className="mb-6 grid gap-4 lg:grid-cols-2">
+        <ChartCard title="Where the batch cost sits">
+          <PieBlock
+            data={[
+              { name: "Material", value: Number(kpis.materialCostPercent || 0) },
+              { name: "Packaging", value: Number(kpis.packagingCostPercent || 0) },
+              { name: "Labour", value: Number(kpis.laborCostPercent || 0) },
+              { name: "Overhead", value: Number(kpis.overheadPercent || 0) },
+            ]}
+            empty="No cost split for the selected batches."
+          />
+        </ChartCard>
+        <ChartCard title="Cost work still open">
+          <BarBlock
+            data={[
+              { name: "Approvals", value: Number(kpis.pendingCostingApprovals || 0) },
+              { name: "Incomplete records", value: Number(kpis.incompleteCostRecords || 0) },
+              { name: "Finance reconciliation", value: Number(kpis.awaitingFinanceReconciliation || 0) },
+              { name: "Batches", value: Number(kpis.batchCount || 0) },
+            ]}
+            empty="No open costing work."
+          />
+        </ChartCard>
+      </div>
       <div className="grid gap-4 lg:grid-cols-2">
         <TableCard
           title="Highest variance batches"
@@ -131,7 +156,7 @@ function DashboardInner() {
 
 function Metric({ label, value, href }: { label: string; value?: number | null; href: string }) {
   return (
-    <Link href={href} className="rounded-xl border bg-card p-4 transition-colors hover:bg-muted/40">
+    <Link href={href} className="rounded-2xl border border-border/80 bg-card p-4 shadow-sm transition-[transform,border-color,box-shadow] hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-[0_16px_32px_-24px_color-mix(in_oklch,var(--primary)_70%,transparent)]">
       <p className="text-xs text-muted-foreground">{label}</p>
       <p className="mt-2 text-2xl font-semibold tabular-nums">{formatMetric(value)}</p>
     </Link>
@@ -210,9 +235,9 @@ function humanizeKey(key: string) {
 }
 
 function kpiHref(key: string) {
+  if (key.includes("Investigation") || key.includes("Variance") || key.includes("standardVersus")) return "/costing/variances";
   if (key.includes("Approval")) return "/costing/approvals";
   if (key.includes("Incomplete")) return "/costing/audit";
-  if (key.includes("Variance") || key.includes("standardVersus")) return "/costing/variances";
   if (key.includes("material")) return "/costing/materials";
   if (key.includes("packaging")) return "/costing/packaging";
   if (key.includes("labor")) return "/costing/labor";

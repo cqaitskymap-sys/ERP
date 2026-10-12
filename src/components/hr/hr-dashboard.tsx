@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { getHrDashboard } from "@/lib/hr/client";
 import { publicMasterError } from "@/lib/masters/errors";
+import { BarBlock, ChartCard, PieBlock, toChart } from "@/components/charts/dashboard-charts";
 
 type Stats = Record<string, unknown>;
 
@@ -115,6 +116,22 @@ function DashboardInner() {
       ) : (
         <p className="mb-6 text-sm text-muted-foreground">No KPI aggregates returned yet.</p>
       )}
+      <div className="mb-6 grid gap-4 lg:grid-cols-2">
+        <ChartCard title="People in today">
+          <PieBlock
+            data={[
+              { name: "Present", value: Number(stats.attendancePresentToday || 0) },
+              { name: "Late", value: Number(stats.lateArrivalsToday || 0) },
+              { name: "Absent", value: Number(stats.attendanceAbsentToday || 0) },
+              { name: "On leave", value: Number(stats.employeesOnLeave || 0) },
+            ]}
+            empty="No attendance posted for today."
+          />
+        </ChartCard>
+        <ChartCard title="Active people by department">
+          <BarBlock data={toChart(stats.departmentDistribution as Record<string, number>)} empty="No active employees in this scope." />
+        </ChartCard>
+      </div>
       <div className="mb-6 rounded-xl border bg-muted/30 p-4 text-sm text-muted-foreground">
         <p>
           <span className="font-medium text-foreground">As of:</span> {String(stats.asOf || "—")}
@@ -152,7 +169,7 @@ function DashboardInner() {
 
 function Metric({ label, value, href }: { label: string; value?: number | null; href: string }) {
   return (
-    <Link href={href} className="rounded-xl border bg-card p-4 transition-colors hover:bg-muted/40">
+    <Link href={href} className="rounded-2xl border border-border/80 bg-card p-4 shadow-sm transition-[transform,border-color,box-shadow] hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-[0_16px_32px_-24px_color-mix(in_oklch,var(--primary)_70%,transparent)]">
       <p className="text-xs text-muted-foreground">{label}</p>
       <p className="mt-2 text-2xl font-semibold tabular-nums">{Number(value || 0).toLocaleString()}</p>
     </Link>
