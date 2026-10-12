@@ -4,18 +4,17 @@ import Link from "next/link";
 import { useTheme } from "next-themes";
 import {
   LayoutGrid,
+  LogOut,
   Menu,
   Moon,
-  Search,
-  Sun,
-  LogOut,
-  UserRound,
   Shield,
+  Sun,
+  UserRound,
 } from "lucide-react";
 import { Breadcrumbs } from "@/components/layout/breadcrumbs";
 import { BrandMark } from "@/components/layout/brand-mark";
+import { WorkspaceSearch } from "@/components/layout/workspace-search";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   DropdownMenu,
@@ -78,18 +77,7 @@ export function TopNav({ onOpenSidebar, picker = false }: TopNavProps) {
           </Button>
         ) : null}
 
-        {!picker ? (
-          <div className="group relative hidden w-72 xl:block">
-            <Search className="pointer-events-none absolute top-1/2 left-3 size-3.5 -translate-y-1/2 text-muted-foreground transition-colors group-focus-within:text-primary" />
-            <Input
-              placeholder="Search workspace…"
-              className="h-9 rounded-full border-border/70 bg-muted/40 pr-14 pl-9 shadow-[inset_0_1px_0_0_color-mix(in_oklch,white_6%,transparent)] backdrop-blur-sm transition-[border-color,box-shadow,background-color] placeholder:text-muted-foreground/70 focus-visible:border-primary/50 focus-visible:bg-card/80 focus-visible:ring-primary/20 dark:bg-muted/25 dark:focus-visible:bg-card/60"
-            />
-            <kbd className="pointer-events-none absolute top-1/2 right-2 inline-flex h-6 -translate-y-1/2 items-center gap-0.5 rounded-full border border-border/70 bg-background/70 px-2 font-sans text-[10px] font-medium tracking-wide text-muted-foreground shadow-sm">
-              ⌘K
-            </kbd>
-          </div>
-        ) : null}
+        {!picker ? <WorkspaceSearch /> : null}
 
         <Button
           variant="ghost"

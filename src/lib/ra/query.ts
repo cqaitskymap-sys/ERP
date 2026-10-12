@@ -265,20 +265,59 @@ export async function loadRaReport(type: (typeof RA_REPORT_TYPES)[number], query
                       : type === "customer_requirement"
                         ? RA_COLLECTIONS.requirements
                         : RA_COLLECTIONS.registrations;
-  const result = await listRaRecords(
-    collection,
-    { ...query, pageSize: query.pageSize || 50, status: type === "overdue_commitment" ? "overdue" : query.status },
-    idToken
-  );
   if (type === "compliance_calendar") {
     const calendar = await loadRaCalendar(idToken);
     return { rows: calendar.events, nextCursor: null };
   }
   if (type === "registration_expiry" || type === "license_expiry") {
-    return {
-      rows: result.rows.filter((row) => ["expiring_soon", "critical", "expired"].includes(calculateExpiryStatus(row.expiryDate))),
-      nextCursor: result.nextCursor,
-    };
+    return listMatchingRaRecords(collection, query, idToken, (row) =>
+      ["expiring_soon", "critical", "expired"].includes(calculateExpiryStatus(row.expiryDate))
+    );
   }
-  return result;
+  return listRaRecords(
+    collection,
+    { ...query, pageSize: query.pageSize || 50, status: type === "overdue_commitment" ? "overdue" : query.status },
+    idToken
+  );
+}
+
+async function listMatchingRaRecords(
+  collection: string,
+  query: RaListQuery,
+  idToken: string,
+  predicate: (row: MasterRecord) => boolean
+) {
+  const pageSize = Math.min(Math.max(Number(query.pageSize || 50), 1), 100);
+  const search = query.search?.trim();
+  const matches: MasterRecord[] = [];
+  let cursor = query.cursor;
+  let resume: string | null = null;
+  let exhausted = false;
+
+  for (let hop = 0; hop < 12 && matches.length <= pageSize; hop += 1) {
+    const result = await listRaRecords(collection, { ...query, pageSize: 100, cursor }, idToken);
+    if (result.rows.length === 0) {
+      exhausted = true;
+      break;
+    }
+    for (const row of result.rows) {
+      if (!predicate(row)) continue;
+      matches.push(row);
+      if (matches.length > pageSize) break;
+    }
+    if (matches.length > pageSize) break;
+    if (!result.nextCursor) {
+      exhausted = true;
+      break;
+    }
+    cursor = result.nextCursor;
+    resume = result.nextCursor;
+  }
+
+  if (matches.length > pageSize) {
+    const last = matches[pageSize - 1];
+    const cursorValue = search ? String(last.searchIndex || "") : String(last.updatedAt || "");
+    return { rows: matches.slice(0, pageSize), nextCursor: encodeCursor([cursorValue]) };
+  }
+  return { rows: matches, nextCursor: exhausted ? null : resume };
 }

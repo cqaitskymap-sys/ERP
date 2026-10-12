@@ -10,6 +10,7 @@ import {
 } from "@/lib/inventory/helpers";
 import {
   balanceKey,
+  balanceLifecycleStatus,
   itemCollection,
   nameIndex,
   normalizeBatchNumber,
@@ -90,7 +91,8 @@ export function buildBalanceRecord(
   snapshot: StockSnapshot,
   quantity: number,
   session: SessionPayload,
-  existing?: MasterRecord | null
+  existing?: MasterRecord | null,
+  reservedQuantity?: number
 ) {
   const id = balanceKey({
     itemType: snapshot.itemType,
@@ -101,6 +103,9 @@ export function buildBalanceRecord(
     qualityStatus: snapshot.qualityStatus,
   });
   const available = roundQuantity(quantity);
+  const reserved = roundQuantity(
+    reservedQuantity === undefined ? existing?.reservedQuantity || 0 : reservedQuantity
+  );
   const quality = snapshot.qualityStatus;
   return {
     id,
@@ -119,13 +124,13 @@ export function buildBalanceRecord(
     qualityStatus: quality,
     inventoryStatus: snapshot.inventoryStatus || inventoryStatusForQuality(quality),
     availableQuantity: available,
-    reservedQuantity: Number(existing?.reservedQuantity || 0),
+    reservedQuantity: reserved,
     rejectedQuantity: quality === "rejected" ? available : Number(existing?.rejectedQuantity || 0),
     uom: snapshot.uom,
     expiryDate: snapshot.expiryDate || existing?.expiryDate || "",
     searchIndex: searchFor(snapshot),
     nameIndex: nameIndex(snapshot.itemName),
-    status: available <= 0 ? "closed" : "active",
+    status: balanceLifecycleStatus(available, reserved),
     ...actorStamp(session, existing || undefined),
   };
 }
@@ -145,8 +150,13 @@ export async function applyReservationDelta(options: {
   if (nextAvailable < -1e-9) fail("Insufficient available quantity.");
   if (nextReserved < -1e-9) fail("Reservation quantity cannot become negative.");
   const record = {
-    ...buildBalanceRecord(options.snapshot, Math.max(0, nextAvailable), options.session, existing),
-    reservedQuantity: Math.max(0, nextReserved),
+    ...buildBalanceRecord(
+      options.snapshot,
+      Math.max(0, nextAvailable),
+      options.session,
+      existing,
+      Math.max(0, nextReserved)
+    ),
     inventoryStatus: nextReserved > 0 ? "reserved" : inventoryStatusForQuality(options.snapshot.qualityStatus),
   };
   return {
@@ -170,8 +180,13 @@ export async function applyReservedConsumption(options: {
   const nextReserved = roundQuantity(Number(existing.reservedQuantity || 0) - options.quantity);
   if (nextReserved < -1e-9) fail("Insufficient reserved quantity.");
   const record = {
-    ...buildBalanceRecord(options.snapshot, roundQuantity(existing.availableQuantity), options.session, existing),
-    reservedQuantity: Math.max(0, nextReserved),
+    ...buildBalanceRecord(
+      options.snapshot,
+      roundQuantity(existing.availableQuantity),
+      options.session,
+      existing,
+      Math.max(0, nextReserved)
+    ),
     inventoryStatus: nextReserved > 0 ? "reserved" : inventoryStatusForQuality(options.snapshot.qualityStatus),
   };
   return {

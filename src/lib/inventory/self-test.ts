@@ -2,7 +2,7 @@ import { strictEqual, ok, notEqual } from "node:assert/strict";
 import { issueBlockReason } from "@/lib/inventory/eligibility";
 import { classifyInventoryExpiry, daysUntil } from "@/lib/inventory/expiry";
 import { selectFefoBatches, sortFefoCandidates } from "@/lib/inventory/fefo";
-import { balanceKey, roundQuantity } from "@/lib/inventory/keys";
+import { balanceKey, balanceLifecycleStatus, roundQuantity } from "@/lib/inventory/keys";
 import { canTransitionQuality } from "@/lib/inventory/quality";
 import type { FefoCandidate } from "@/types/inventory";
 
@@ -91,6 +91,9 @@ export function runInventorySelfTests() {
   });
   notEqual(keyA, keyB);
   ok(keyA.includes("B001"));
+  strictEqual(balanceLifecycleStatus(0, 4), "active");
+  strictEqual(balanceLifecycleStatus(0, 0), "closed");
+  strictEqual(balanceLifecycleStatus(3, 0), "active");
 
   return "inventory self-tests passed";
 }

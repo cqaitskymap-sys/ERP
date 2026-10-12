@@ -2,16 +2,15 @@ import { NextResponse, type NextRequest } from "next/server";
 import { SESSION_COOKIE } from "@/lib/auth/constants";
 import { getRoutePolicy, isPublicPath } from "@/lib/auth/route-policy";
 
+const STATIC_ASSET =
+  /\.(?:ico|png|jpe?g|gif|svg|webp|css|js|map|txt|xml|woff2?|ttf|eot|webmanifest)$/i;
+
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const hasSession = Boolean(request.cookies.get(SESSION_COOKIE)?.value);
   const isPublic = isPublicPath(pathname);
 
-  if (
-    pathname.startsWith("/_next") ||
-    pathname.startsWith("/favicon") ||
-    pathname.includes(".")
-  ) {
+  if (pathname.startsWith("/_next") || STATIC_ASSET.test(pathname)) {
     return NextResponse.next();
   }
 

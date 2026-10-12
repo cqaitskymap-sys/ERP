@@ -68,14 +68,24 @@ function Inner({
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let ignore = false;
     const timer = window.setTimeout(() => {
       setLoading(true);
       void listArtwork(resource, { pageSize: 50 })
-        .then((result) => setRows(result.rows))
-        .catch((error) => toast.error("Unable to load artwork", publicMasterError(error)))
-        .finally(() => setLoading(false));
+        .then((result) => {
+          if (!ignore) setRows(result.rows);
+        })
+        .catch((error) => {
+          if (!ignore) toast.error("Unable to load artwork", publicMasterError(error));
+        })
+        .finally(() => {
+          if (!ignore) setLoading(false);
+        });
     }, 0);
-    return () => window.clearTimeout(timer);
+    return () => {
+      ignore = true;
+      window.clearTimeout(timer);
+    };
   }, [resource]);
 
   return (

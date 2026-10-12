@@ -85,17 +85,26 @@ function ListInner({
   const filterKey = JSON.stringify(filterValues);
 
   useEffect(() => {
+    let ignore = false;
     const timer = window.setTimeout(() => {
       setLoading(true);
       void listComplaints(resource, { ...filterValues, search: debounced, pageSize: 25 })
         .then((result) => {
+          if (ignore) return;
           setRows(result.rows);
           setCursor(result.nextCursor);
         })
-        .catch((error) => toast.error("Unable to load records", publicMasterError(error)))
-        .finally(() => setLoading(false));
+        .catch((error) => {
+          if (!ignore) toast.error("Unable to load records", publicMasterError(error));
+        })
+        .finally(() => {
+          if (!ignore) setLoading(false);
+        });
     }, 0);
-    return () => window.clearTimeout(timer);
+    return () => {
+      ignore = true;
+      window.clearTimeout(timer);
+    };
   }, [resource, debounced, filterKey, filterValues]);
 
   async function loadMore() {

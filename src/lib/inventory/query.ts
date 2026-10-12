@@ -78,19 +78,69 @@ export async function listInventoryRecords(
     return paginate(rows, pageSize, (row) => [String(row.searchIndex || "")]);
   }
 
+  if (query.expiry) {
+    return listExpiryPage({
+      fetchBatch: (startAfter) =>
+        queryMasterDocuments(collection, idToken, {
+          filters,
+          orderBy: [{ field: "updatedAt", direction: "DESCENDING" }],
+          startAfter,
+          limit: 100,
+        }),
+      expiry: query.expiry,
+      pageSize,
+      cursorValues,
+    });
+  }
+
   const rows = await queryMasterDocuments(collection, idToken, {
     filters,
     orderBy: [{ field: "updatedAt", direction: "DESCENDING" }],
     startAfter: cursorValues,
     limit: pageSize + 1,
   });
-  const filtered = applyExpiryFilter(rows, query.expiry);
-  return paginate(filtered, pageSize, (row) => [String(row.updatedAt || "")]);
+  return paginate(rows, pageSize, (row) => [String(row.updatedAt || "")]);
 }
 
-function applyExpiryFilter(rows: MasterRecord[], expiry?: string) {
-  if (!expiry) return rows;
-  return rows.filter((row) => classifyInventoryExpiry(row.expiryDate) === expiry);
+async function listExpiryPage(options: {
+  fetchBatch: (startAfter?: Array<string | number>) => Promise<MasterRecord[]>;
+  expiry: string;
+  pageSize: number;
+  cursorValues?: Array<string | number>;
+}) {
+  const matches: MasterRecord[] = [];
+  let startAfter = options.cursorValues;
+  let resume: Array<string | number> | undefined;
+  let exhausted = false;
+
+  for (let hop = 0; hop < 15 && matches.length <= options.pageSize; hop += 1) {
+    const batch = await options.fetchBatch(startAfter);
+    if (batch.length === 0) {
+      exhausted = true;
+      break;
+    }
+    for (const row of batch) {
+      if (classifyInventoryExpiry(row.expiryDate) !== options.expiry) continue;
+      matches.push(row);
+      if (matches.length > options.pageSize) break;
+    }
+    if (matches.length > options.pageSize) break;
+    const last = batch[batch.length - 1];
+    resume = [String(last?.updatedAt || "")];
+    if (batch.length < 100) {
+      exhausted = true;
+      break;
+    }
+    startAfter = resume;
+  }
+
+  if (matches.length > options.pageSize) {
+    return paginate(matches, options.pageSize, (row) => [String(row.updatedAt || "")]);
+  }
+  return {
+    rows: matches,
+    nextCursor: exhausted || !resume ? null : encodeCursor(resume),
+  };
 }
 
 function paginate(

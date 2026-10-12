@@ -94,17 +94,26 @@ function ListInner({
     .join("|");
 
   useEffect(() => {
+    let ignore = false;
     const timer = window.setTimeout(() => {
       setLoading(true);
       void listEngineering(resource, { ...filterValues, search: debounced, pageSize: 50 })
         .then((result) => {
+          if (ignore) return;
           setRows(result.rows);
           setError(null);
         })
-        .catch((err) => setError(publicMasterError(err)))
-        .finally(() => setLoading(false));
+        .catch((err) => {
+          if (!ignore) setError(publicMasterError(err));
+        })
+        .finally(() => {
+          if (!ignore) setLoading(false);
+        });
     }, 0);
-    return () => window.clearTimeout(timer);
+    return () => {
+      ignore = true;
+      window.clearTimeout(timer);
+    };
     // filterKey serializes filterValues for stable effect deps.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [resource, debounced, filterKey]);
@@ -128,11 +137,9 @@ function ListInner({
               Export
             </Button>
             {createHref ? (
-              <Button asChild className="min-h-11">
-                <a href={createHref}>
-                  <Plus className="mr-2 size-4" />
-                  {createLabel || "Create"}
-                </a>
+              <Button className="min-h-11" onClick={() => router.push(createHref)}>
+                <Plus className="mr-2 size-4" />
+                {createLabel || "Create"}
               </Button>
             ) : null}
           </>

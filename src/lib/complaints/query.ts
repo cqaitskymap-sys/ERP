@@ -350,18 +350,65 @@ export async function loadComplaintReport(type: (typeof COMPLAINT_REPORT_TYPES)[
           : type === "regulatory_notification" ? COMPLAINT_COLLECTIONS.notifications
             : type === "root_cause" ? COMPLAINT_COLLECTIONS.rootCauses
               : COMPLAINT_COLLECTIONS.complaints;
-  const result = await listComplaintRecords(collection, { ...query, pageSize: query.pageSize || 50, status: type === "overdue" ? query.status : query.status }, idToken);
   if (type === "overdue") {
-    return { rows: result.rows.filter((row) => (daysUntilUtc(row.dueDate) ?? 1) < 0 && !["closed", "cancelled"].includes(text(row.status))), nextCursor: result.nextCursor };
+    return listMatchingComplaintRecords(collection, query, idToken, (row) =>
+      (daysUntilUtc(row.dueDate) ?? 1) < 0 && !["closed", "cancelled"].includes(text(row.status))
+    );
   }
   if (type === "capa_linked") {
-    return { rows: result.rows.filter((row) => text(row.capaId)), nextCursor: result.nextCursor };
+    return listMatchingComplaintRecords(collection, query, idToken, (row) => Boolean(text(row.capaId)));
   }
   if (type === "closure") {
-    return { rows: result.rows.filter((row) => text(row.status) === "closed"), nextCursor: result.nextCursor };
+    return listMatchingComplaintRecords(collection, query, idToken, (row) => text(row.status) === "closed");
   }
   if (type === "repeated") {
-    return { rows: result.rows.filter((row) => text(row.relatedComplaintCount) || text(row.batchNumber)), nextCursor: result.nextCursor };
+    return listMatchingComplaintRecords(
+      collection,
+      query,
+      idToken,
+      (row) => Boolean(text(row.relatedComplaintCount) || text(row.batchNumber))
+    );
   }
-  return result;
+  return listComplaintRecords(collection, { ...query, pageSize: query.pageSize || 50 }, idToken);
+}
+
+async function listMatchingComplaintRecords(
+  collection: string,
+  query: ComplaintListQuery,
+  idToken: string,
+  predicate: (row: MasterRecord) => boolean
+) {
+  const pageSize = Math.min(Math.max(Number(query.pageSize || 50), 1), 100);
+  const search = query.search?.trim();
+  const matches: MasterRecord[] = [];
+  let cursor = query.cursor;
+  let resume: string | null = null;
+  let exhausted = false;
+
+  for (let hop = 0; hop < 12 && matches.length <= pageSize; hop += 1) {
+    const result = await listComplaintRecords(collection, { ...query, pageSize: 100, cursor }, idToken);
+    if (result.rows.length === 0) {
+      exhausted = true;
+      break;
+    }
+    for (const row of result.rows) {
+      if (!predicate(row)) continue;
+      matches.push(row);
+      if (matches.length > pageSize) break;
+    }
+    if (matches.length > pageSize) break;
+    if (!result.nextCursor) {
+      exhausted = true;
+      break;
+    }
+    cursor = result.nextCursor;
+    resume = result.nextCursor;
+  }
+
+  if (matches.length > pageSize) {
+    const last = matches[pageSize - 1];
+    const cursorValue = search ? String(last.searchIndex || "") : String(last.updatedAt || "");
+    return { rows: matches.slice(0, pageSize), nextCursor: encodeCursor([cursorValue]) };
+  }
+  return { rows: matches, nextCursor: exhausted ? null : resume };
 }

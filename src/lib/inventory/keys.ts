@@ -48,6 +48,10 @@ export function roundQuantity(value: unknown) {
   return Math.round(number * 10000) / 10000;
 }
 
+export function balanceLifecycleStatus(available: unknown, reserved: unknown) {
+  return roundQuantity(available) <= 0 && roundQuantity(reserved) <= 0 ? "closed" : "active";
+}
+
 export function isPositiveQuantity(value: unknown) {
   return roundQuantity(value) > 0;
 }

@@ -229,15 +229,59 @@ export async function loadSqReport(type: (typeof SQ_REPORT_TYPES)[number], query
                   : type === "change" ? SQ_COLLECTIONS.changes
                     : type === "risk" ? SQ_COLLECTIONS.risks
                       : SQ_COLLECTIONS.profiles;
-  const result = await listSqRecords(collection, { ...query, pageSize: query.pageSize || 50 }, idToken);
   if (type === "approved_list") {
-    return { rows: result.rows.filter((row) => ["qualified", "conditional"].includes(text(row.qualificationStatus))), nextCursor: result.nextCursor };
+    return listMatchingSqRecords(collection, query, idToken, (row) =>
+      ["qualified", "conditional"].includes(text(row.qualificationStatus))
+    );
   }
   if (type === "certificate_expiry" || type === "agreement_expiry") {
-    return { rows: result.rows.filter((row) => calculateExpiryStatus(row.expiryDate).status !== "valid"), nextCursor: result.nextCursor };
+    return listMatchingSqRecords(collection, query, idToken, (row) =>
+      calculateExpiryStatus(row.expiryDate).status !== "valid"
+    );
   }
   if (type === "disqualification") {
-    return { rows: result.rows.filter((row) => text(row.status) === "disqualified"), nextCursor: result.nextCursor };
+    return listMatchingSqRecords(collection, query, idToken, (row) => text(row.status) === "disqualified");
   }
-  return result;
+  return listSqRecords(collection, { ...query, pageSize: query.pageSize || 50 }, idToken);
+}
+
+async function listMatchingSqRecords(
+  collection: string,
+  query: SqListQuery,
+  idToken: string,
+  predicate: (row: MasterRecord) => boolean
+) {
+  const pageSize = Math.min(Math.max(Number(query.pageSize || 50), 1), 100);
+  const search = query.search?.trim();
+  const matches: MasterRecord[] = [];
+  let cursor = query.cursor;
+  let resume: string | null = null;
+  let exhausted = false;
+
+  for (let hop = 0; hop < 12 && matches.length <= pageSize; hop += 1) {
+    const result = await listSqRecords(collection, { ...query, pageSize: 100, cursor }, idToken);
+    if (result.rows.length === 0) {
+      exhausted = true;
+      break;
+    }
+    for (const row of result.rows) {
+      if (!predicate(row)) continue;
+      matches.push(row);
+      if (matches.length > pageSize) break;
+    }
+    if (matches.length > pageSize) break;
+    if (!result.nextCursor) {
+      exhausted = true;
+      break;
+    }
+    cursor = result.nextCursor;
+    resume = result.nextCursor;
+  }
+
+  if (matches.length > pageSize) {
+    const last = matches[pageSize - 1];
+    const cursorValue = search ? String(last.searchIndex || "") : String(last.updatedAt || "");
+    return { rows: matches.slice(0, pageSize), nextCursor: encodeCursor([cursorValue]) };
+  }
+  return { rows: matches, nextCursor: exhausted ? null : resume };
 }

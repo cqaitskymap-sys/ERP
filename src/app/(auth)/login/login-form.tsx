@@ -14,6 +14,26 @@ import { parseForm, signInSchema } from "@/lib/validation/schemas";
 import { toast } from "@/lib/feedback/toast";
 import { appConfig } from "@/lib/config/app";
 
+function safeNextPath(value: string | null) {
+  if (!value) return "/";
+  let decoded = value;
+  try {
+    decoded = decodeURIComponent(value);
+  } catch {
+    return "/";
+  }
+  if (
+    !decoded.startsWith("/") ||
+    decoded.startsWith("//") ||
+    decoded.includes("\\") ||
+    decoded.includes("://") ||
+    decoded.includes("\0")
+  ) {
+    return "/";
+  }
+  return value;
+}
+
 export function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -52,7 +72,7 @@ export function LoginForm() {
         remember,
       });
       toast.success("Signed in", "Secure session established.");
-      router.push(searchParams.get("next") || "/");
+      router.push(safeNextPath(searchParams.get("next")));
       router.refresh();
     } catch (error) {
       setFormError(mapAuthError(error));

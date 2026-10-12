@@ -83,17 +83,26 @@ function ListInner(props: {
     .join("|");
 
   useEffect(() => {
+    let ignore = false;
     const timer = window.setTimeout(() => {
       setLoading(true);
       void listDms(props.resource, { ...props.filterValues, search: debounced, pageSize: 50 })
         .then((result) => {
+          if (ignore) return;
           setRows(result.rows);
           setError(null);
         })
-        .catch((err) => setError(publicMasterError(err)))
-        .finally(() => setLoading(false));
+        .catch((err) => {
+          if (!ignore) setError(publicMasterError(err));
+        })
+        .finally(() => {
+          if (!ignore) setLoading(false);
+        });
     }, 0);
-    return () => window.clearTimeout(timer);
+    return () => {
+      ignore = true;
+      window.clearTimeout(timer);
+    };
     // filterKey serializes filterValues for stable effect deps.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [props.resource, debounced, filterKey]);
